@@ -167,26 +167,38 @@ export default function Dashboard() {
     <div>
       {/* Emergency Alarm Banner Overlay */}
       {activeAlarm && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, width: '100%', zIndex: 9999,
-          background: 'red', color: 'white', padding: '20px', textAlign: 'center',
-          boxShadow: '0 4px 10px rgba(0,0,0,0.5)', animation: 'flash 1s infinite alternate'
-        }}>
+        <div className="emergency-banner">
           <style>
-            {`@keyframes flash { from { background-color: red; } to { background-color: darkred; } }`}
+            {`
+              @keyframes flash { from { background-color: red; } to { background-color: darkred; } }
+              .emergency-banner {
+                position: fixed; top: 0; left: 0; width: 100%; z-index: 9999;
+                background: red; color: white; padding: 20px; text-align: center;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.5); animation: flash 1s infinite alternate;
+                max-height: 100vh; overflow-y: auto;
+                box-sizing: border-box;
+              }
+              .emergency-banner h1 { margin: 0 0 10px 0; font-size: 32px; }
+              .emergency-banner p { font-size: 18px; margin: 5px 0; word-wrap: break-word; }
+              .emergency-banner button {
+                margin-top: 15px; padding: 15px 30px; font-size: 20px; font-weight: bold;
+                background: white; color: red; border: none; border-radius: 8px; cursor: pointer;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+              }
+              @media (max-width: 600px) {
+                .emergency-banner { padding: 15px 10px; }
+                .emergency-banner h1 { font-size: 22px; }
+                .emergency-banner p { font-size: 14px; }
+                .emergency-banner button { padding: 10px 20px; font-size: 16px; margin-top: 10px; }
+              }
+            `}
           </style>
-          <h1 style={{margin: '0 0 10px 0', fontSize: '32px'}}>🚨 EMERGENCY ALARM TRIGGERED 🚨</h1>
-          <p style={{fontSize: '18px', margin: '5px 0'}}><strong>Device:</strong> {activeAlarm.device_code}</p>
-          <p style={{fontSize: '18px', margin: '5px 0'}}><strong>Reason:</strong> {activeAlarm.message || 'SOS Panic Button pressed'}</p>
-          <p style={{fontSize: '18px', margin: '5px 0'}}><strong>Location:</strong> {activeAlarm.latitude}, {activeAlarm.longitude}</p>
+          <h1>🚨 EMERGENCY ALARM TRIGGERED 🚨</h1>
+          <p><strong>Device:</strong> {activeAlarm.device_code}</p>
+          <p><strong>Reason:</strong> {activeAlarm.message || 'SOS Panic Button pressed'}</p>
+          <p><strong>Location:</strong> {activeAlarm.latitude}, {activeAlarm.longitude}</p>
           
-          <button 
-            onClick={stopAlarm}
-            style={{
-              marginTop: '15px', padding: '15px 30px', fontSize: '20px', fontWeight: 'bold',
-              background: 'white', color: 'red', border: 'none', borderRadius: '8px', cursor: 'pointer'
-            }}
-          >
+          <button onClick={stopAlarm}>
             STOP ALARM
           </button>
         </div>
