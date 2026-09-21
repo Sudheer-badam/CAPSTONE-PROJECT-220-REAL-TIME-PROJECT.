@@ -2,13 +2,15 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
 // Your web app's Firebase configuration
+// These are safe to be public as Firebase security is handled by Security Rules
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
+  apiKey: "AIzaSyAffFR66goUx51PBnpOb5VebVyp5qO907A",
+  authDomain: "capstone-project-220-real-time.firebaseapp.com",
+  projectId: "capstone-project-220-real-time",
+  storageBucket: "capstone-project-220-real-time.firebasestorage.app",
+  messagingSenderId: "585922420311",
+  appId: "1:585922420311:web:59f30356aec0178088cd12",
+  measurementId: "G-WG5SDEG9ER"
 };
 
 // Initialize Firebase
