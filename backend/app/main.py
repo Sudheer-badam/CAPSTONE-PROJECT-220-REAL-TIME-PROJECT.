@@ -45,6 +45,37 @@ app.add_middleware(
 def health_check():
     return {"status": "healthy"}
 
+@app.get("/api/debug/firebase")
+def debug_firebase():
+    import os
+    cred_path = os.getenv("FIREBASE_CREDENTIALS_PATH", "firebase-credentials.json")
+    exists = os.path.exists(cred_path)
+    content_preview = None
+    if exists:
+        try:
+            with open(cred_path, 'r') as f:
+                content = f.read()
+                content_preview = content[:50] + "..."
+        except Exception as e:
+            content_preview = str(e)
+            
+    try:
+        from app.firebase_service import get_firestore_db
+        get_firestore_db()
+        status = "Success"
+        error = None
+    except Exception as e:
+        status = "Failed"
+        error = str(e)
+        
+    return {
+        "cred_path": cred_path,
+        "exists": exists,
+        "content_preview": content_preview,
+        "init_status": status,
+        "error": error
+    }
+
 @app.post("/api/analysis/run")
 def run_analysis(db = Depends(get_db)):
     """Reads dataset, analyzes it, and populates database."""
