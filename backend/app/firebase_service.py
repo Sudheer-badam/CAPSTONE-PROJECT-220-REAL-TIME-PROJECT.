@@ -11,7 +11,21 @@ def get_firestore_db():
     if _db is not None:
         return _db
 
-    # Look for the credentials file path in the environment, Render's default, or local
+    # First check if the raw JSON is in the environment variable
+    cred_json_str = os.getenv("FIREBASE_CREDENTIALS_JSON")
+    if cred_json_str:
+        import json
+        try:
+            cred_dict = json.loads(cred_json_str)
+            cred = credentials.Certificate(cred_dict)
+            firebase_admin.initialize_app(cred)
+            _db = firestore.client()
+            print("Firebase initialized successfully using FIREBASE_CREDENTIALS_JSON env var")
+            return _db
+        except Exception as e:
+            raise Exception(f"Failed to initialize Firebase from FIREBASE_CREDENTIALS_JSON: {e}")
+
+    # Fallback to file path
     cred_path = os.getenv("FIREBASE_CREDENTIALS_PATH")
     if not cred_path:
         if os.path.exists("/etc/secrets/firebase-credentials.json"):
