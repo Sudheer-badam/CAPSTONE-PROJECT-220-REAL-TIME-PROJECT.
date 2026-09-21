@@ -11,9 +11,14 @@ def get_firestore_db():
     if _db is not None:
         return _db
 
-    # Look for the credentials file path in the environment or a default location
-    cred_path = os.getenv("FIREBASE_CREDENTIALS_PATH", "firebase-credentials.json")
-    
+    # Look for the credentials file path in the environment, Render's default, or local
+    cred_path = os.getenv("FIREBASE_CREDENTIALS_PATH")
+    if not cred_path:
+        if os.path.exists("/etc/secrets/firebase-credentials.json"):
+            cred_path = "/etc/secrets/firebase-credentials.json"
+        else:
+            cred_path = "firebase-credentials.json"
+            
     if os.path.exists(cred_path):
         try:
             cred = credentials.Certificate(cred_path)
