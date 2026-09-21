@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+pandas
+numpy
+nltk
+scikit-learn
+python-dotenv
+pydantic
+pydantic-settings
+pytz
+requests==2.31.0
+firebase-admin

@@ -1,0 +1,21 @@
+id,text,date,time,location,latitude,longitude,incident_type
+1,Suspicious group of men following women near the Central Station,2026-08-25,18:30:00,Central Station,16.501,80.641,Suspicious Activity
+2,Streetlights are broken on MG Road. Feels very unsafe to walk here at night.,2026-08-26,20:15:00,MG Road,16.505,80.645,Infrastructure/Safety Issue
+3,Someone was stalked near City Mall parking lot today. Be careful!,2026-08-26,21:00:00,City Mall,16.510,80.650,Stalking
+4,Police patrol is doing a great job near the university campus today.,2026-08-27,10:00:00,University Campus,16.515,80.655,Other
+5,Harassment incident reported near the bus stop in downtown.,2026-08-27,15:45:00,Downtown Bus Stop,16.520,80.660,Harassment
+6,Emergency! Need help near Central Station immediately.,2026-08-27,22:10:00,Central Station,16.502,80.642,Emergency
+7,Very dark alleyway near MG Road. Not safe.,2026-08-28,19:00:00,MG Road,16.504,80.644,Unsafe Area
+8,Saw a guy acting suspiciously near the park entrance.,2026-08-28,14:20:00,City Park,16.525,80.665,Suspicious Activity
+9,The new SOS booths in the city center are a great addition for safety.,2026-08-28,11:30:00,City Center,16.530,80.670,Other
+10,Followed by a stranger near Central Station. Was terrifying.,2026-08-29,20:45:00,Central Station,16.501,80.640,Stalking
+11,Another harassment case at Downtown Bus Stop.,2026-08-29,16:30:00,Downtown Bus Stop,16.521,80.661,Harassment
+12,Streetlights still not working on MG Road.,2026-08-30,21:00:00,MG Road,16.505,80.645,Infrastructure/Safety Issue
+13,Feeling unsafe near Central Station at night.,2026-08-30,23:15:00,Central Station,16.503,80.641,Unsafe Area
+14,Suspicious person loitering around the mall parking.,2026-08-30,13:40:00,City Mall,16.510,80.651,Suspicious Activity
+15,Help! Someone snatched my bag near Central Station!,2026-08-31,09:10:00,Central Station,16.502,80.642,Emergency
+16,I feel very safe walking in the park today.,2026-08-31,10:00:00,City Park,16.525,80.665,Other
+17,A man is constantly catcalling women at the bus stop.,2026-08-31,14:00:00,Downtown Bus Stop,16.520,80.660,Harassment
+18,Need police assistance at MG Road immediately.,2026-08-31,21:30:00,MG Road,16.505,80.645,Emergency
+19,Unsafe activity reported near the mall.,2026-08-31,19:00:00,City Mall,16.511,80.651,Suspicious Activity
+20,Group of drunk men creating nuisance near Central Station.,2026-08-31,23:45:00,Central Station,16.501,80.641,Unsafe Area
