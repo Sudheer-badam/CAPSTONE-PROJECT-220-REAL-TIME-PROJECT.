@@ -61,7 +61,6 @@ export default function RiskZoneAlert() {
   const [userLocation, setUserLocation] = useState(null);
   const [riskZones, setRiskZones] = useState([]);
   const [activeAlertZone, setActiveAlertZone] = useState(null);
-  const [dismissedZoneId, setDismissedZoneId] = useState(null);
 
   // Fetch active risk zones
   useEffect(() => {
@@ -100,34 +99,15 @@ export default function RiskZoneAlert() {
     return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
-  // Clear dismissed if they walk out
-  useEffect(() => {
-    if (!userLocation || !dismissedZoneId || riskZones.length === 0) return;
-    
-    const dismissedZone = riskZones.find(z => z.id === dismissedZoneId);
-    if (dismissedZone) {
-      const dist = getDistanceInMeters(
-        userLocation.latitude, 
-        userLocation.longitude, 
-        dismissedZone.latitude, 
-        dismissedZone.longitude
-      );
-      if (dist > (dismissedZone.radius_meters || 300)) {
-        setDismissedZoneId(null);
-      }
-    } else {
-      setDismissedZoneId(null);
-    }
-  }, [userLocation, riskZones, dismissedZoneId]);
-
   // Check if user is in any risk zone
   useEffect(() => {
-    if (!userLocation || riskZones.length === 0) return;
+    if (!userLocation || riskZones.length === 0) {
+      setActiveAlertZone(null);
+      return;
+    }
 
     let foundZone = null;
     for (const zone of riskZones) {
-      if (zone.id === dismissedZoneId) continue;
-      
       const dist = getDistanceInMeters(
         userLocation.latitude, 
         userLocation.longitude, 
@@ -142,7 +122,7 @@ export default function RiskZoneAlert() {
     }
 
     setActiveAlertZone(foundZone);
-  }, [userLocation, riskZones, dismissedZoneId]);
+  }, [userLocation, riskZones]);
 
   if (!activeAlertZone) return null;
 
@@ -387,11 +367,6 @@ export default function RiskZoneAlert() {
       </style>
       
       <div className="risk-zone-glass-modal">
-        <button className="dismiss-btn" onClick={() => {
-          setDismissedZoneId(activeAlertZone.id);
-          setActiveAlertZone(null);
-        }}>✕</button>
-        
         <h2>⚠️ DANGER ZONE ⚠️</h2>
         
         <div className="risk-info-grid">
