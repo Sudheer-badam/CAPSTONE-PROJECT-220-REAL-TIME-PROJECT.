@@ -34,6 +34,13 @@ function getBearing(lat1, lon1, lat2, lon2) {
   return (brng + 360) % 360;
 }
 
+// Convert bearing to compass direction string
+function getCompassDirection(bearing) {
+  const directions = ["North", "North-East", "East", "South-East", "South", "South-West", "West", "North-West"];
+  const index = Math.round(((bearing %= 360) < 0 ? bearing + 360 : bearing) / 45) % 8;
+  return directions[index];
+}
+
 // Calculate a destination point given distance and bearing
 function getDestinationPoint(lat, lon, distance, bearing) {
   const R = 6371e3;
@@ -145,6 +152,7 @@ export default function RiskZoneAlert() {
   
   // Bearing from zone center to user
   const bearingOut = getBearing(activeAlertZone.latitude, activeAlertZone.longitude, userLocation.latitude, userLocation.longitude);
+  const compassDirection = getCompassDirection(bearingOut);
   
   const safePoint = getDestinationPoint(userLocation.latitude, userLocation.longitude, distanceToEdge, bearingOut);
   
@@ -229,8 +237,10 @@ export default function RiskZoneAlert() {
           }
           
           .risk-info-value {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
+            word-wrap: break-word;
+            line-height: 1.4;
           }
 
           .reporters-section {
@@ -298,6 +308,35 @@ export default function RiskZoneAlert() {
             box-shadow: 0 6px 20px rgba(40, 167, 69, 0.6);
           }
 
+          .compass-widget {
+            position: absolute;
+            bottom: 80px;
+            right: 20px;
+            width: 70px;
+            height: 70px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 193, 7, 0.4);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            z-index: 10;
+          }
+          
+          .compass-arrow {
+            transition: transform 0.5s ease-out;
+            margin-bottom: 2px;
+          }
+          
+          .compass-dist-text {
+            font-size: 11px;
+            color: #ffc107;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+          }
+
           /* Mobile Layout Improvements */
           @media (max-width: 480px) {
             .risk-zone-glass-modal {
@@ -334,6 +373,15 @@ export default function RiskZoneAlert() {
               padding: 12px;
               font-size: 14px;
             }
+            .compass-widget {
+              bottom: 70px;
+              right: 15px;
+              width: 60px;
+              height: 60px;
+            }
+            .compass-dist-text {
+              font-size: 10px;
+            }
           }
         `}
       </style>
@@ -349,15 +397,17 @@ export default function RiskZoneAlert() {
         <div className="risk-info-grid">
           <div className="risk-info-item">
             <span className="risk-info-label">Risk Area</span>
-            <span className="risk-info-value">{activeAlertZone.name}</span>
-          </div>
-          <div className="risk-info-item">
-            <span className="risk-info-label">Address / Coordinates</span>
             <span className="risk-info-value">{locationName}</span>
           </div>
           <div className="risk-info-item">
-            <span className="risk-info-label">Distance to Safety</span>
-            <span className="risk-info-value" style={{color: '#ffc107'}}>{distanceToEdge} meters</span>
+            <span className="risk-info-label">Coordinates</span>
+            <span className="risk-info-value">Lat: {activeAlertZone.latitude.toFixed(5)}, Lng: {activeAlertZone.longitude.toFixed(5)}</span>
+          </div>
+          <div className="risk-info-item">
+            <span className="risk-info-label">Escape Direction</span>
+            <span className="risk-info-value" style={{color: '#ffc107'}}>
+              Walk {distanceToEdge} meters heading {compassDirection}
+            </span>
           </div>
         </div>
         
@@ -378,6 +428,14 @@ export default function RiskZoneAlert() {
             </div>
           </div>
         )}
+        
+        <div className="compass-widget" title={`Head ${compassDirection}`}>
+          <svg className="compass-arrow" style={{ transform: `rotate(${bearingOut}deg)` }} width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffc107" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="19" x2="12" y2="5"></line>
+            <polyline points="5 12 12 5 19 12"></polyline>
+          </svg>
+          <span className="compass-dist-text">{distanceToEdge}m</span>
+        </div>
         
         <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer" className="escape-btn">
           🗺️ Open Safe Escape Route
