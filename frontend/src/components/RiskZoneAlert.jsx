@@ -62,6 +62,21 @@ export default function RiskZoneAlert() {
   const [riskZones, setRiskZones] = useState([]);
   const [activeAlertZone, setActiveAlertZone] = useState(null);
   const [resolvedAddress, setResolvedAddress] = useState("");
+  const [isAlarmActive, setIsAlarmActive] = useState(false);
+
+  // Listen for global SOS alarm events from Dashboard
+  useEffect(() => {
+    const handleActive = () => setIsAlarmActive(true);
+    const handleDismissed = () => setIsAlarmActive(false);
+    
+    window.addEventListener('sosAlarmActive', handleActive);
+    window.addEventListener('sosAlarmDismissed', handleDismissed);
+    
+    return () => {
+      window.removeEventListener('sosAlarmActive', handleActive);
+      window.removeEventListener('sosAlarmDismissed', handleDismissed);
+    };
+  }, []);
 
   // Fetch active risk zones
   useEffect(() => {
@@ -149,7 +164,9 @@ export default function RiskZoneAlert() {
     }
   }, [activeAlertZone]);
 
-  if (!activeAlertZone) return null;
+  // Hide the danger glass if the loud alarm banner is currently active,
+  // or if there is no active alert zone.
+  if (!activeAlertZone || isAlarmActive) return null;
 
   // Calculate Escape Route
   const radius = activeAlertZone.radius_meters || 50;

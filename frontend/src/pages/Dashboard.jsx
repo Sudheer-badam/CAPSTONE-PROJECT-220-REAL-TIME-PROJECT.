@@ -37,6 +37,8 @@ export default function Dashboard() {
   };
 
   const playSiren = () => {
+    window.dispatchEvent(new Event('sosAlarmActive'));
+    
     if (!audioCtxRef.current) return;
     
     if (oscillatorRef.current) {
@@ -83,6 +85,7 @@ export default function Dashboard() {
       navigator.vibrate(0);
     }
     setActiveAlarm(null);
+    window.dispatchEvent(new Event('sosAlarmDismissed'));
   };
 
   useEffect(() => {
