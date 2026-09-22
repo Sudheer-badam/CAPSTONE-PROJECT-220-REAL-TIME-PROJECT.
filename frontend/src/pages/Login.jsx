@@ -7,6 +7,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [captchaVerified, setCaptchaVerified] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const handleCaptchaChange = (value) => {
     // value is the captcha token, null if expired
@@ -61,10 +62,21 @@ export default function Login() {
           />
         </div>
 
+        <div className="terms-wrapper">
+          <label className="terms-label">
+            <input 
+              type="checkbox" 
+              checked={termsAccepted} 
+              onChange={(e) => setTermsAccepted(e.target.checked)} 
+            />
+            <span>I agree to the <a>Terms & Conditions</a> and <a>Privacy Policy</a></span>
+          </label>
+        </div>
+
         <button
           className="login-btn google"
           onClick={handleGoogleLogin}
-          disabled={loading || !captchaVerified}
+          disabled={loading || !captchaVerified || !termsAccepted}
         >
           <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
           Sign in with Google
@@ -73,7 +85,7 @@ export default function Login() {
         <button
           className="login-btn microsoft"
           onClick={handleMicrosoftLogin}
-          disabled={loading || !captchaVerified}
+          disabled={loading || !captchaVerified || !termsAccepted}
         >
           <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/microsoft.svg" alt="Microsoft" />
           Sign in with Microsoft
