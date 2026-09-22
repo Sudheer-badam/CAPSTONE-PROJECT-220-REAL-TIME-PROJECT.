@@ -1,4 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { onAuthStateChanged, signOut } from 'firebase/auth'
+import { auth } from './services/firebase'
+import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import MapPage from './pages/MapPage'
 import IoTEvents from './pages/IoTEvents'
@@ -43,6 +46,28 @@ function ThemeSwitcher() {
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard')
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleSignOut = () => {
+    signOut(auth).catch(console.error);
+  };
+
+  if (loading) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontSize: '20px' }}>Loading...</div>;
+  }
+
+  if (!user) {
+    return <Login />;
+  }
 
   return (
     <div className="app-container">
@@ -76,6 +101,9 @@ function App() {
             onClick={() => setActiveTab('metrics')}
           >
             Model Performance
+          </button>
+          <button className="logout-btn" onClick={handleSignOut}>
+            Sign Out
           </button>
         </nav>
       </header>
