@@ -61,6 +61,7 @@ export default function RiskZoneAlert() {
   const [userLocation, setUserLocation] = useState(null);
   const [riskZones, setRiskZones] = useState([]);
   const [activeAlertZone, setActiveAlertZone] = useState(null);
+  const [resolvedAddress, setResolvedAddress] = useState("");
 
   // Fetch active risk zones
   useEffect(() => {
@@ -115,7 +116,7 @@ export default function RiskZoneAlert() {
         zone.longitude
       );
       
-      if (dist <= (zone.radius_meters || 300)) {
+      if (dist <= (zone.radius_meters || 50)) {
         foundZone = { ...zone, currentDistance: dist };
         break;
       }
@@ -124,10 +125,34 @@ export default function RiskZoneAlert() {
     setActiveAlertZone(foundZone);
   }, [userLocation, riskZones]);
 
+  // Resolve address dynamically for the active zone
+  useEffect(() => {
+    if (activeAlertZone) {
+      let locName = activeAlertZone.name.replace("Potential Risk Zone: ", "");
+      if (locName === "Emergency Location" || locName === "Unknown Location") {
+        setResolvedAddress("Resolving street address...");
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${activeAlertZone.latitude}&lon=${activeAlertZone.longitude}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.display_name) {
+              setResolvedAddress(data.display_name);
+            } else {
+              setResolvedAddress("Address not found");
+            }
+          })
+          .catch(() => setResolvedAddress("Address resolution failed"));
+      } else {
+        setResolvedAddress(locName);
+      }
+    } else {
+      setResolvedAddress("");
+    }
+  }, [activeAlertZone]);
+
   if (!activeAlertZone) return null;
 
   // Calculate Escape Route
-  const radius = activeAlertZone.radius_meters || 300;
+  const radius = activeAlertZone.radius_meters || 50;
   const distanceToEdge = Math.max(0, Math.round(radius - activeAlertZone.currentDistance) + 50);
   
   // Bearing from zone center to user
@@ -137,11 +162,6 @@ export default function RiskZoneAlert() {
   const safePoint = getDestinationPoint(userLocation.latitude, userLocation.longitude, distanceToEdge, bearingOut);
   
   const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.latitude},${userLocation.longitude}&destination=${safePoint.latitude},${safePoint.longitude}&travelmode=walking`;
-
-  let locationName = activeAlertZone.name.replace("Potential Risk Zone: ", "");
-  if (locationName === "Unknown Location") {
-    locationName = `Coordinates: ${activeAlertZone.latitude.toFixed(4)}, ${activeAlertZone.longitude.toFixed(4)}`;
-  }
 
   return (
     <div className="risk-zone-modal-overlay">
@@ -371,8 +391,15 @@ export default function RiskZoneAlert() {
         
         <div className="risk-info-grid">
           <div className="risk-info-item">
-            <span className="risk-info-label">Risk Area</span>
-            <span className="risk-info-value">{locationName}</span>
+            <span className="risk-info-label">Risk Area (Street)</span>
+            <span className="risk-info-value" style={{ fontSize: '13px' }}>{resolvedAddress}</span>
+          </div>
+          <div className="risk-info-item">
+            <span className="risk-info-label">Coordinates</span>
+            <span className="risk-info-value" style={{ fontFamily: 'monospace', color: '#ffcccc' }}>
+              Lat: {activeAlertZone.latitude.toFixed(6)} <br/>
+              Lng: {activeAlertZone.longitude.toFixed(6)}
+            </span>
           </div>
           <div className="risk-info-item">
             <span className="risk-info-label">Escape Direction</span>

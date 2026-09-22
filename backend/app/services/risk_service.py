@@ -53,7 +53,8 @@ def recalculate_risk_zones(db):
         doc.reference.delete()
         
     for loc_name, loc_posts in location_groups.items():
-        if len(loc_posts) >= settings.RISK_MIN_REPORTS:
+        has_sos = any(p.get('incident_type') == 'Emergency' for p in loc_posts)
+        if len(loc_posts) >= settings.RISK_MIN_REPORTS or has_sos:
             avg_lat = sum(p['latitude'] for p in loc_posts) / len(loc_posts)
             avg_lon = sum(p['longitude'] for p in loc_posts) / len(loc_posts)
             # Extract unique reporters and their times
@@ -72,7 +73,7 @@ def recalculate_risk_zones(db):
                 "name": f"Potential Risk Zone: {loc_name}",
                 "latitude": avg_lat,
                 "longitude": avg_lon,
-                "radius_meters": 300.0,
+                "radius_meters": 50.0,
                 "report_count": len(loc_posts),
                 "status": "Active",
                 "calculated_at": get_ist_now().isoformat(),
@@ -94,7 +95,7 @@ def check_if_in_risk_zone(db, latitude: float, longitude: float):
     for doc in zones_docs:
         zone = doc.to_dict()
         dist = calculate_distance(latitude, longitude, zone.get('latitude'), zone.get('longitude'))
-        if dist <= zone.get('radius_meters', 300.0):
+        if dist <= zone.get('radius_meters', 50.0):
             return True, zone.get('name')
             
     return False, None
