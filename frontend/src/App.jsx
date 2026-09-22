@@ -79,25 +79,25 @@ function App() {
         </div>
         <nav>
           <button 
-            className={activeTab === 'dashboard' ? 'active' : ''} 
+            className={`nav-dashboard ${activeTab === 'dashboard' ? 'active' : ''}`} 
             onClick={() => setActiveTab('dashboard')}
           >
             Dashboard
           </button>
           <button 
-            className={activeTab === 'map' ? 'active' : ''} 
+            className={`nav-map ${activeTab === 'map' ? 'active' : ''}`} 
             onClick={() => setActiveTab('map')}
           >
             Risk Zones
           </button>
           <button 
-            className={activeTab === 'iot' ? 'active' : ''} 
+            className={`nav-iot ${activeTab === 'iot' ? 'active' : ''}`} 
             onClick={() => setActiveTab('iot')}
           >
             IoT SOS Events
           </button>
           <button 
-            className={activeTab === 'metrics' ? 'active' : ''} 
+            className={`nav-metrics ${activeTab === 'metrics' ? 'active' : ''}`} 
             onClick={() => setActiveTab('metrics')}
           >
             Model Performance
