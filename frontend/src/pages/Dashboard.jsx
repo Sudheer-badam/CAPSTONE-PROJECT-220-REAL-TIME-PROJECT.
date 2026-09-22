@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [sentimentData, setSentimentData] = useState([]);
   const [incidentData, setIncidentData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cachedLocation, setCachedLocation] = useState(null);
 
   // Emergency Alarm State
   const [safetyMeasuresEnabled, setSafetyMeasuresEnabled] = useState(false);
@@ -153,12 +154,23 @@ export default function Dashboard() {
       isInitialLoad = false;
     });
 
+    // 5. Background GPS tracking for instant SOS triggering
+    let watchId;
+    if (navigator.geolocation) {
+      watchId = navigator.geolocation.watchPosition(
+        (pos) => setCachedLocation({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+        (err) => console.log("GPS track error:", err),
+        { enableHighAccuracy: true }
+      );
+    }
+
     // Cleanup listeners on unmount
     return () => {
       unsubAnalysis();
       unsubPosts();
       unsubZones();
       unsubEvents();
+      if (watchId) navigator.geolocation.clearWatch(watchId);
     };
   }, []);
 
@@ -248,32 +260,28 @@ export default function Dashboard() {
           </p>
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
             <button 
-              onClick={() => {
-                if (!navigator.geolocation) return alert("Geolocation not supported by browser.");
-                navigator.geolocation.getCurrentPosition(async (pos) => {
-                  try {
-                    const userName = auth.currentUser ? (auth.currentUser.displayName || auth.currentUser.email) : 'Unknown User';
-                    const { triggerSOS } = await import('../services/api');
-                    await triggerSOS({ device_id: 'SIMULATOR-001', latitude: pos.coords.latitude, longitude: pos.coords.longitude, user_name: userName });
-                    alert(`SOS Alert Triggered at Real Location:\nLat: ${pos.coords.latitude.toFixed(4)}\nLon: ${pos.coords.longitude.toFixed(4)}`);
-                  } catch (e) { alert("Failed to trigger SOS."); }
-                }, (err) => alert("Please allow location access."));
+              onClick={async () => {
+                if (!cachedLocation) return alert("Waiting for GPS lock... please ensure location access is allowed.");
+                try {
+                  const userName = auth.currentUser ? (auth.currentUser.displayName || auth.currentUser.email) : 'Unknown User';
+                  const { triggerSOS } = await import('../services/api');
+                  await triggerSOS({ device_id: 'SIMULATOR-001', latitude: cachedLocation.lat, longitude: cachedLocation.lon, user_name: userName });
+                  // Removed blocking alert() so UI renders instantly!
+                } catch (e) { alert("Failed to trigger SOS."); }
               }}
               style={{ flex: '1 1 200px', padding: '10px 20px', background: '#dc3545', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
             >
               🚨 Simulate SOS Panic Button
             </button>
             <button 
-              onClick={() => {
-                if (!navigator.geolocation) return alert("Geolocation not supported by browser.");
-                navigator.geolocation.getCurrentPosition(async (pos) => {
-                  try {
-                    const userName = auth.currentUser ? (auth.currentUser.displayName || auth.currentUser.email) : 'Unknown User';
-                    const { triggerLocationUpdate } = await import('../services/api');
-                    await triggerLocationUpdate({ device_id: 'SIMULATOR-001', latitude: pos.coords.latitude, longitude: pos.coords.longitude, user_name: userName });
-                    alert(`Location Update Sent at Real Location:\nLat: ${pos.coords.latitude.toFixed(4)}\nLon: ${pos.coords.longitude.toFixed(4)}`);
-                  } catch (e) { alert("Failed to send location update."); }
-                }, (err) => alert("Please allow location access."));
+              onClick={async () => {
+                if (!cachedLocation) return alert("Waiting for GPS lock... please ensure location access is allowed.");
+                try {
+                  const userName = auth.currentUser ? (auth.currentUser.displayName || auth.currentUser.email) : 'Unknown User';
+                  const { triggerLocationUpdate } = await import('../services/api');
+                  await triggerLocationUpdate({ device_id: 'SIMULATOR-001', latitude: cachedLocation.lat, longitude: cachedLocation.lon, user_name: userName });
+                  // Removed blocking alert() so UI renders instantly!
+                } catch (e) { alert("Failed to send location update."); }
               }}
               style={{ flex: '1 1 200px', padding: '10px 20px', background: '#007bff', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
             >
