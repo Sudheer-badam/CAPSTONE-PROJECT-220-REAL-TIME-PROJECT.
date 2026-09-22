@@ -311,19 +311,6 @@ def iot_sos(data: schemas.IoTSOSInput, background_tasks: BackgroundTasks, db = D
         "status": "Active"
     }, merge=True)
     
-    fast_zone_ref = db.collection('risk_zones').document()
-    batch.set(fast_zone_ref, {
-        "id": fast_zone_ref.id,
-        "name": "Potential Risk Zone: Emergency Location",
-        "latitude": data.latitude,
-        "longitude": data.longitude,
-        "radius_meters": 50.0,
-        "report_count": 1,
-        "status": "Active",
-        "calculated_at": get_ist_now().isoformat(),
-        "reporters": [{"name": data.user_name if data.user_name else "Unknown User", "time": get_ist_now().isoformat()}]
-    })
-    
     event_ref = db.collection('iot_events').document()
     batch.set(event_ref, {
         "id": event_ref.id,
@@ -341,23 +328,63 @@ def iot_sos(data: schemas.IoTSOSInput, background_tasks: BackgroundTasks, db = D
     batch.commit()
     
     # --- BACKGROUND TASK FOR HEAVY LIFTING ---
-    def process_sos_background(lat, lon, device_id, user_name, event_id, zone_id):
+    def process_sos_background(lat, lon, user_name, event_id):
         try:
             address = get_address_from_coords(lat, lon)
             
             bg_batch = db.batch()
             
-            # Update the event and risk zone with the resolved address
+            # Update the event with the resolved address
             base_message = f"EMERGENCY at: {address}"
             final_message = f"{base_message} (Triggered by: {user_name})" if user_name else base_message
             bg_batch.update(db.collection('iot_events').document(event_id), {"message": final_message})
-            bg_batch.update(db.collection('risk_zones').document(zone_id), {"name": f"Potential Risk Zone: {address}"})
+            
+            bg_batch.commit()
+            cleanup_old_iot_events(db)
+        except Exception as e:
+            print(f"Error in background SOS processing: {e}")
+
+    background_tasks.add_task(process_sos_background, data.latitude, data.longitude, data.user_name, event_ref.id)
+    
+    return {
+        "success": True,
+        "event": "SOS",
+        "message": "SOS event received and logged instantly."
+    }
+
+@app.post("/api/iot/danger-zone")
+def activate_danger_zone(data: schemas.ActivateDangerZoneInput, background_tasks: BackgroundTasks, db = Depends(get_db)):
+    if not db: raise HTTPException(status_code=500)
+    
+    batch = db.batch()
+    
+    fast_zone_ref = db.collection('risk_zones').document()
+    batch.set(fast_zone_ref, {
+        "id": fast_zone_ref.id,
+        "name": f"Purpose: {data.reason} - Potential Risk Zone: Emergency Location",
+        "latitude": data.latitude,
+        "longitude": data.longitude,
+        "radius_meters": 50.0,
+        "report_count": 1,
+        "status": "Active",
+        "calculated_at": get_ist_now().isoformat(),
+        "reporters": [{"name": data.user_name if data.user_name else "Unknown User", "time": get_ist_now().isoformat()}]
+    })
+    
+    batch.commit()
+    
+    def process_danger_zone_background(lat, lon, user_name, zone_id, reason):
+        try:
+            address = get_address_from_coords(lat, lon)
+            bg_batch = db.batch()
+            
+            bg_batch.update(db.collection('risk_zones').document(zone_id), {"name": f"Purpose: {reason} - Potential Risk Zone: {address}"})
             
             post_ref = db.collection('posts').document()
             bg_batch.set(post_ref, {
                 "id": post_ref.id,
-                "text": "EMERGENCY SOS Triggered from IoT Device",
-                "cleaned_text": clean_text("EMERGENCY SOS Triggered from IoT Device"),
+                "text": f"Danger Zone Activated - Reason: {reason}",
+                "cleaned_text": clean_text(f"Danger Zone Activated Reason {reason}"),
                 "date": get_ist_now().strftime('%Y-%m-%d'),
                 "time": get_ist_now().strftime('%H:%M:%S'),
                 "location": address,
@@ -384,18 +411,14 @@ def iot_sos(data: schemas.IoTSOSInput, background_tasks: BackgroundTasks, db = D
             })
             
             bg_batch.commit()
-            
-            # Note: Deliberately NOT calling recalculate_risk_zones here so we don't accidentally bring back old historical risk zones.
-            cleanup_old_iot_events(db)
         except Exception as e:
-            print(f"Error in background SOS processing: {e}")
+            print(f"Error in background Danger Zone processing: {e}")
 
-    background_tasks.add_task(process_sos_background, data.latitude, data.longitude, data.device_id, data.user_name, event_ref.id, fast_zone_ref.id)
+    background_tasks.add_task(process_danger_zone_background, data.latitude, data.longitude, data.user_name, fast_zone_ref.id, data.reason)
     
     return {
         "success": True,
-        "event": "SOS",
-        "message": "SOS event received and logged instantly."
+        "message": "Danger Zone activated."
     }
 
 @app.get("/api/iot/events")
