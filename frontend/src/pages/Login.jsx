@@ -67,6 +67,10 @@ export default function Login() {
       const deviceName = navigator.userAgent;
 
       const now = new Date();
+      const pad = (n) => n.toString().padStart(2, '0');
+      const localDate = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+      const localTime = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+      
       await addDoc(collection(db, 'user_logins'), {
         user_id: user.uid,
         user_name: user.displayName || user.email || 'Unknown User',
@@ -76,8 +80,8 @@ export default function Login() {
         location: locationStr,
         device_name: deviceName,
         timestamp: now.toISOString(),
-        date: now.toISOString().split('T')[0],
-        time: now.toISOString().split('T')[1].split('.')[0]
+        date: localDate,
+        time: localTime
       });
     } catch (err) {
       console.error('Failed to log user audit record', err);
