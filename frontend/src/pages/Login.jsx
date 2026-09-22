@@ -67,9 +67,12 @@ export default function Login() {
       const deviceName = navigator.userAgent;
 
       const now = new Date();
+      // Explicitly calculate IST (UTC + 5:30) to avoid any OS timezone issues
+      const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
       const pad = (n) => n.toString().padStart(2, '0');
-      const localDate = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
-      const localTime = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+      
+      const localDate = `${istTime.getUTCFullYear()}-${pad(istTime.getUTCMonth() + 1)}-${pad(istTime.getUTCDate())}`;
+      const localTime = `${pad(istTime.getUTCHours())}:${pad(istTime.getUTCMinutes())}:${pad(istTime.getUTCSeconds())}`;
       
       await addDoc(collection(db, 'user_logins'), {
         user_id: user.uid,
