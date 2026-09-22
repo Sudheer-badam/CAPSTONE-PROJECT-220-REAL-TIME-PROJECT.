@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { signInWithPopup, GoogleAuthProvider, OAuthProvider } from 'firebase/auth';
-import { auth } from '../services/firebase';
+import { collection, addDoc } from 'firebase/firestore';
+import { auth, db } from '../services/firebase';
 
 export default function Login() {
   const [error, setError] = useState('');
@@ -19,12 +20,46 @@ export default function Login() {
     }
   };
 
+  const logUserLogin = async (user, providerName) => {
+    try {
+      let ip = 'Unknown';
+      let locationStr = 'Unknown Location';
+      
+      try {
+        const res = await fetch('https://ipapi.co/json/');
+        if (res.ok) {
+          const data = await res.json();
+          ip = data.ip || 'Unknown';
+          locationStr = data.city ? `${data.city}, ${data.region}, ${data.country_name}` : 'Unknown Location';
+        }
+      } catch (e) {
+        console.warn('Failed to fetch IP details');
+      }
+
+      const deviceName = navigator.userAgent;
+
+      await addDoc(collection(db, 'user_logins'), {
+        user_id: user.uid,
+        user_name: user.displayName || user.email || 'Unknown User',
+        email: user.email || 'No Email',
+        provider: providerName,
+        ip_address: ip,
+        location: locationStr,
+        device_name: deviceName,
+        timestamp: new Date().toISOString()
+      });
+    } catch (err) {
+      console.error('Failed to log user audit record', err);
+    }
+  };
+
   const handleGoogleLogin = async () => {
     try {
       setError('');
       setLoading(true);
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      await logUserLogin(result.user, 'Google');
     } catch (err) {
       console.error(err);
       setError('Failed to log in with Google. Ensure the provider is enabled in Firebase Console.');
@@ -38,7 +73,8 @@ export default function Login() {
       setError('');
       setLoading(true);
       const provider = new OAuthProvider('microsoft.com');
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      await logUserLogin(result.user, 'Microsoft');
     } catch (err) {
       console.error(err);
       setError('Failed to log in with Microsoft. Ensure the provider is enabled in Firebase Console.');

@@ -390,8 +390,14 @@ th:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
   /* Make table look better on mobile */
   .table-container {
     padding: 10px;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 20px;
   }
   
+  table {
+    min-width: 600px; /* Forces scrolling instead of squishing */
+  }
+
   th, td {
     padding: 10px;
     font-size: 14px;

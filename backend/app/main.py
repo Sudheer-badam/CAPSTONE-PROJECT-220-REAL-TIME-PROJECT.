@@ -248,6 +248,9 @@ def iot_location_update(data: schemas.IoTLocationInput, db = Depends(get_db)):
         
     address = get_address_from_coords(data.latitude, data.longitude)
     
+    base_message = f"Location update near: {address}"
+    final_message = f"{base_message} (Triggered by: {data.user_name})" if data.user_name else base_message
+    
     event_ref = db.collection('iot_events').document()
     event_ref.set({
         "id": event_ref.id,
@@ -255,7 +258,7 @@ def iot_location_update(data: schemas.IoTLocationInput, db = Depends(get_db)):
         "event_type": "LOCATION_UPDATE",
         "latitude": data.latitude,
         "longitude": data.longitude,
-        "message": f"Location update near: {address}",
+        "message": final_message,
         "created_at": get_ist_now().isoformat()
     })
     
@@ -284,6 +287,9 @@ def iot_sos(data: schemas.IoTSOSInput, db = Depends(get_db)):
         
     address = get_address_from_coords(data.latitude, data.longitude)
     
+    base_message = f"EMERGENCY at: {address}"
+    final_message = f"{base_message} (Triggered by: {data.user_name})" if data.user_name else base_message
+    
     event_ref = db.collection('iot_events').document()
     event_ref.set({
         "id": event_ref.id,
@@ -291,7 +297,7 @@ def iot_sos(data: schemas.IoTSOSInput, db = Depends(get_db)):
         "event_type": "SOS",
         "latitude": data.latitude,
         "longitude": data.longitude,
-        "message": f"EMERGENCY at: {address}",
+        "message": final_message,
         "created_at": get_ist_now().isoformat()
     })
     

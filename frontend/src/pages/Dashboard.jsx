@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { collection, onSnapshot, query } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { db, auth } from '../services/firebase';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell
@@ -251,8 +251,9 @@ export default function Dashboard() {
                 if (!navigator.geolocation) return alert("Geolocation not supported by browser.");
                 navigator.geolocation.getCurrentPosition(async (pos) => {
                   try {
+                    const userName = auth.currentUser ? (auth.currentUser.displayName || auth.currentUser.email) : 'Unknown User';
                     const { triggerSOS } = await import('../services/api');
-                    await triggerSOS({ device_id: 'SIMULATOR-001', latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+                    await triggerSOS({ device_id: 'SIMULATOR-001', latitude: pos.coords.latitude, longitude: pos.coords.longitude, user_name: userName });
                     alert(`SOS Alert Triggered at Real Location:\nLat: ${pos.coords.latitude.toFixed(4)}\nLon: ${pos.coords.longitude.toFixed(4)}`);
                   } catch (e) { alert("Failed to trigger SOS."); }
                 }, (err) => alert("Please allow location access."));
@@ -266,8 +267,9 @@ export default function Dashboard() {
                 if (!navigator.geolocation) return alert("Geolocation not supported by browser.");
                 navigator.geolocation.getCurrentPosition(async (pos) => {
                   try {
+                    const userName = auth.currentUser ? (auth.currentUser.displayName || auth.currentUser.email) : 'Unknown User';
                     const { triggerLocationUpdate } = await import('../services/api');
-                    await triggerLocationUpdate({ device_id: 'SIMULATOR-001', latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+                    await triggerLocationUpdate({ device_id: 'SIMULATOR-001', latitude: pos.coords.latitude, longitude: pos.coords.longitude, user_name: userName });
                     alert(`Location Update Sent at Real Location:\nLat: ${pos.coords.latitude.toFixed(4)}\nLon: ${pos.coords.longitude.toFixed(4)}`);
                   } catch (e) { alert("Failed to send location update."); }
                 }, (err) => alert("Please allow location access."));

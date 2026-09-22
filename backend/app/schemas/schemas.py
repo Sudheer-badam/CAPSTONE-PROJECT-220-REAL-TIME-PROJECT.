@@ -7,11 +7,13 @@ class IoTLocationInput(BaseModel):
     device_id: str
     latitude: float
     longitude: float
+    user_name: Optional[str] = None
 
 class IoTSOSInput(BaseModel):
     device_id: str
     latitude: float
     longitude: float
+    user_name: Optional[str] = None
 
 # --- Response Schemas ---
 class RiskZoneCheckResponse(BaseModel):
