@@ -121,7 +121,8 @@ def run_analysis(db = Depends(get_db)):
             "created_at": get_ist_now().isoformat(),
             # Denormalize analysis results for easier querying in NoSQL
             "sentiment": sentiment_res['sentiment_label'],
-            "incident_type": incident_type
+            "incident_type": incident_type,
+            "reported_by": "Anonymous User"
         }
         batch.set(post_ref, post_data)
         
@@ -338,7 +339,8 @@ def iot_sos(data: schemas.IoTSOSInput, background_tasks: BackgroundTasks, db = D
         "longitude": data.longitude,
         "created_at": get_ist_now().isoformat(),
         "sentiment": "Negative",
-        "incident_type": "Emergency"
+        "incident_type": "Emergency",
+        "reported_by": data.user_name if data.user_name else "Unknown User"
     })
     
     analysis_ref = db.collection('analysis_results').document()

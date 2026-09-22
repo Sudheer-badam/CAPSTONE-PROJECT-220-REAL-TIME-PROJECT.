@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard'
 import MapPage from './pages/MapPage'
 import IoTEvents from './pages/IoTEvents'
 import ModelMetrics from './pages/ModelMetrics'
+import RiskZoneAlert from './components/RiskZoneAlert'
 import './index.css'
 
 const THEMES = [
@@ -71,6 +72,7 @@ function App() {
 
   return (
     <div className="app-container">
+      <RiskZoneAlert />
       <ThemeSwitcher />
       <header>
         <div className="header-content">
