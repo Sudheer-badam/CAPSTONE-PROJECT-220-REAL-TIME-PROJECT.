@@ -58,7 +58,14 @@ export default function Dashboard() {
   const playSiren = () => {
     window.dispatchEvent(new Event('sosAlarmActive'));
     
-    if (!audioCtxRef.current) return;
+    if (!audioCtxRef.current) {
+      try {
+        audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      } catch (e) {
+        console.warn("AudioContext failed to initialize:", e);
+        return;
+      }
+    }
     
     if (oscillatorRef.current) {
       oscillatorRef.current.stop();
@@ -67,7 +74,9 @@ export default function Dashboard() {
     clearInterval(intervalRef.current);
     
     const ctx = audioCtxRef.current;
-    if (ctx.state === 'suspended') ctx.resume();
+    if (ctx.state === 'suspended') {
+        ctx.resume().catch(err => console.warn("Audio playback was blocked by browser. User interaction is needed.", err));
+    }
     
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -168,20 +177,26 @@ export default function Dashboard() {
     const unsubEvents = onSnapshot(eventsQuery, (snapshot) => {
       setSummary(prev => ({ ...prev, recent_events_count: snapshot.size }));
       
-      if (!isInitialLoad && safetyRef.current) {
+      if (!isInitialLoad) {
         snapshot.docChanges().forEach((change) => {
           if (change.type === "added") {
             const data = change.doc.data();
             if (data.event_type === 'SOS') {
               const loc = locationRef.current;
+              console.log("Received SOS Event:", data);
               if (loc && data.latitude && data.longitude) {
                 const distance = getDistance(loc.lat, loc.lon, data.latitude, data.longitude);
+                console.log(`SOS Distance calculation: ${distance.toFixed(2)} meters from your location.`);
                 if (distance <= 50) {
                   setActiveAlarm(data);
                   setAlarmStopped(false);
                   setDangerReason("");
                   playSiren();
+                } else {
+                  console.log("SOS ignored: Distance is greater than 50m.");
                 }
+              } else {
+                console.log("SOS ignored: Local location not available. Please allow location access.");
               }
             }
           }
