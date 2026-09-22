@@ -578,12 +578,12 @@ th:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
 }
 
 .logout-btn {
-  background: transparent;
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  padding: 8px 16px;
+  background-color: rgba(239, 68, 68, 0.8) !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 10px 24px;
   border-radius: 50px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -591,5 +591,7 @@ th:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
 }
 
 .logout-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background-color: rgba(220, 38, 38, 0.95) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
 }
