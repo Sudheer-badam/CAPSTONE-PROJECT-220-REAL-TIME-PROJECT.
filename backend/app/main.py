@@ -277,8 +277,8 @@ def iot_location_update(data: schemas.IoTLocationInput, background_tasks: Backgr
         "latitude": data.latitude,
         "longitude": data.longitude,
         "message": final_message,
-        "date": get_ist_now().date().isoformat(),
-        "time": get_ist_now().time().isoformat(),
+        "date": get_ist_now().strftime('%Y-%m-%d'),
+        "time": get_ist_now().strftime('%H:%M:%S'),
         "created_at": get_ist_now().isoformat()
     })
     
@@ -321,8 +321,8 @@ def iot_sos(data: schemas.IoTSOSInput, background_tasks: BackgroundTasks, db = D
         "latitude": data.latitude,
         "longitude": data.longitude,
         "message": final_message,
-        "date": get_ist_now().date().isoformat(),
-        "time": get_ist_now().time().isoformat(),
+        "date": get_ist_now().strftime('%Y-%m-%d'),
+        "time": get_ist_now().strftime('%H:%M:%S'),
         "created_at": get_ist_now().isoformat()
     })
     
@@ -331,8 +331,8 @@ def iot_sos(data: schemas.IoTSOSInput, background_tasks: BackgroundTasks, db = D
         "id": post_ref.id,
         "text": "EMERGENCY SOS Triggered from IoT Device",
         "cleaned_text": clean_text("EMERGENCY SOS Triggered from IoT Device"),
-        "date": get_ist_now().date().isoformat(),
-        "time": get_ist_now().time().isoformat(),
+        "date": get_ist_now().strftime('%Y-%m-%d'),
+        "time": get_ist_now().strftime('%H:%M:%S'),
         "location": address,
         "latitude": data.latitude,
         "longitude": data.longitude,
