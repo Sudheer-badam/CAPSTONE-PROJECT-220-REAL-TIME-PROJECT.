@@ -277,6 +277,8 @@ def iot_location_update(data: schemas.IoTLocationInput, background_tasks: Backgr
         "latitude": data.latitude,
         "longitude": data.longitude,
         "message": final_message,
+        "date": get_ist_now().date().isoformat(),
+        "time": get_ist_now().time().isoformat(),
         "created_at": get_ist_now().isoformat()
     })
     
@@ -319,6 +321,8 @@ def iot_sos(data: schemas.IoTSOSInput, background_tasks: BackgroundTasks, db = D
         "latitude": data.latitude,
         "longitude": data.longitude,
         "message": final_message,
+        "date": get_ist_now().date().isoformat(),
+        "time": get_ist_now().time().isoformat(),
         "created_at": get_ist_now().isoformat()
     })
     
