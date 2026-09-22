@@ -400,10 +400,6 @@ export default function RiskZoneAlert() {
             <span className="risk-info-value">{locationName}</span>
           </div>
           <div className="risk-info-item">
-            <span className="risk-info-label">Coordinates</span>
-            <span className="risk-info-value">Lat: {activeAlertZone.latitude.toFixed(5)}, Lng: {activeAlertZone.longitude.toFixed(5)}</span>
-          </div>
-          <div className="risk-info-item">
             <span className="risk-info-label">Escape Direction</span>
             <span className="risk-info-value" style={{color: '#ffc107'}}>
               Walk {distanceToEdge} meters heading {compassDirection}
