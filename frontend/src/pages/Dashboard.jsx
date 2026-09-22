@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { collection, onSnapshot, query } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
 import { db, auth } from '../services/firebase';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -135,7 +135,8 @@ export default function Dashboard() {
 
     // 4. Listen to IoT Events
     let isInitialLoad = true;
-    const unsubEvents = onSnapshot(collection(db, "iot_events"), (snapshot) => {
+    const eventsQuery = query(collection(db, "iot_events"), orderBy("created_at", "desc"), limit(50));
+    const unsubEvents = onSnapshot(eventsQuery, (snapshot) => {
       setSummary(prev => ({ ...prev, recent_events_count: snapshot.size }));
       
       if (!isInitialLoad && safetyRef.current) {
