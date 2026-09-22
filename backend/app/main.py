@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from google.cloud.firestore import Query
 import pandas as pd
@@ -223,8 +223,26 @@ def get_risk_zones(db = Depends(get_db)):
     zones = list(db.collection('risk_zones').stream())
     return [z.to_dict() for z in zones]
 
+def cleanup_old_iot_events(db):
+    try:
+        # Keep only the latest 100 events to prevent infinite database growth
+        docs = db.collection('iot_events').order_by('created_at', direction=Query.DESCENDING).offset(100).stream()
+        batch = db.batch()
+        count = 0
+        for doc in docs:
+            batch.delete(doc.reference)
+            count += 1
+            if count >= 400: # Firestore batch limit
+                batch.commit()
+                batch = db.batch()
+                count = 0
+        if count > 0:
+            batch.commit()
+    except Exception as e:
+        print(f"Error cleaning up old iot events: {e}")
+
 @app.post("/api/iot/location", response_model=schemas.RiskZoneCheckResponse)
-def iot_location_update(data: schemas.IoTLocationInput, db = Depends(get_db)):
+def iot_location_update(data: schemas.IoTLocationInput, background_tasks: BackgroundTasks, db = Depends(get_db)):
     if not db: raise HTTPException(status_code=500)
     
     device_ref = db.collection('iot_devices').document(data.device_id)
@@ -264,6 +282,9 @@ def iot_location_update(data: schemas.IoTLocationInput, db = Depends(get_db)):
     
     in_zone, zone_name = check_if_in_risk_zone(db, data.latitude, data.longitude)
     
+    # Automatically clean up old events in the background
+    background_tasks.add_task(cleanup_old_iot_events, db)
+    
     return {
         "risk_zone": in_zone,
         "zone_name": zone_name,
@@ -271,7 +292,7 @@ def iot_location_update(data: schemas.IoTLocationInput, db = Depends(get_db)):
     }
 
 @app.post("/api/iot/sos", response_model=schemas.SOSResponse)
-def iot_sos(data: schemas.IoTSOSInput, db = Depends(get_db)):
+def iot_sos(data: schemas.IoTSOSInput, background_tasks: BackgroundTasks, db = Depends(get_db)):
     if not db: raise HTTPException(status_code=500)
     
     device_ref = db.collection('iot_devices').document(data.device_id)
@@ -331,6 +352,9 @@ def iot_sos(data: schemas.IoTSOSInput, db = Depends(get_db)):
     })
     
     recalculate_risk_zones(db)
+    
+    # Automatically clean up old events in the background
+    background_tasks.add_task(cleanup_old_iot_events, db)
     
     return {
         "success": True,
