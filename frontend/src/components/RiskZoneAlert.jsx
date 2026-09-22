@@ -18,6 +18,38 @@ function getDistanceInMeters(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
+// Calculate bearing from point 1 to point 2
+function getBearing(lat1, lon1, lat2, lon2) {
+  const toRad = Math.PI / 180;
+  const toDeg = 180 / Math.PI;
+
+  const p1 = lat1 * toRad;
+  const p2 = lat2 * toRad;
+  const dl = (lon2 - lon1) * toRad;
+
+  const y = Math.sin(dl) * Math.cos(p2);
+  const x = Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl);
+  
+  let brng = Math.atan2(y, x) * toDeg;
+  return (brng + 360) % 360;
+}
+
+// Calculate a destination point given distance and bearing
+function getDestinationPoint(lat, lon, distance, bearing) {
+  const R = 6371e3;
+  const toRad = Math.PI / 180;
+  const toDeg = 180 / Math.PI;
+
+  const p1 = lat * toRad;
+  const l1 = lon * toRad;
+  const brng = bearing * toRad;
+
+  const p2 = Math.asin(Math.sin(p1) * Math.cos(distance / R) + Math.cos(p1) * Math.sin(distance / R) * Math.cos(brng));
+  const l2 = l1 + Math.atan2(Math.sin(brng) * Math.sin(distance / R) * Math.cos(p1), Math.cos(distance / R) - Math.sin(p1) * Math.sin(p2));
+
+  return { latitude: p2 * toDeg, longitude: l2 * toDeg };
+}
+
 export default function RiskZoneAlert() {
   const [userLocation, setUserLocation] = useState(null);
   const [riskZones, setRiskZones] = useState([]);
@@ -61,13 +93,32 @@ export default function RiskZoneAlert() {
     return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
+  // Clear dismissed if they walk out
+  useEffect(() => {
+    if (!userLocation || !dismissedZoneId || riskZones.length === 0) return;
+    
+    const dismissedZone = riskZones.find(z => z.id === dismissedZoneId);
+    if (dismissedZone) {
+      const dist = getDistanceInMeters(
+        userLocation.latitude, 
+        userLocation.longitude, 
+        dismissedZone.latitude, 
+        dismissedZone.longitude
+      );
+      if (dist > (dismissedZone.radius_meters || 300)) {
+        setDismissedZoneId(null);
+      }
+    } else {
+      setDismissedZoneId(null);
+    }
+  }, [userLocation, riskZones, dismissedZoneId]);
+
   // Check if user is in any risk zone
   useEffect(() => {
     if (!userLocation || riskZones.length === 0) return;
 
     let foundZone = null;
     for (const zone of riskZones) {
-      // Don't alert again for a dismissed zone until they leave and re-enter, or just ignore if dismissed
       if (zone.id === dismissedZoneId) continue;
       
       const dist = getDistanceInMeters(
@@ -78,7 +129,7 @@ export default function RiskZoneAlert() {
       );
       
       if (dist <= (zone.radius_meters || 300)) {
-        foundZone = zone;
+        foundZone = { ...zone, currentDistance: dist };
         break;
       }
     }
@@ -88,76 +139,250 @@ export default function RiskZoneAlert() {
 
   if (!activeAlertZone) return null;
 
+  // Calculate Escape Route
+  const radius = activeAlertZone.radius_meters || 300;
+  const distanceToEdge = Math.max(0, Math.round(radius - activeAlertZone.currentDistance) + 50);
+  
+  // Bearing from zone center to user
+  const bearingOut = getBearing(activeAlertZone.latitude, activeAlertZone.longitude, userLocation.latitude, userLocation.longitude);
+  
+  const safePoint = getDestinationPoint(userLocation.latitude, userLocation.longitude, distanceToEdge, bearingOut);
+  
+  const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.latitude},${userLocation.longitude}&destination=${safePoint.latitude},${safePoint.longitude}&travelmode=walking`;
+
+  let locationName = activeAlertZone.name.replace("Potential Risk Zone: ", "");
+  if (locationName === "Unknown Location") {
+    locationName = `Coordinates: ${activeAlertZone.latitude.toFixed(4)}, ${activeAlertZone.longitude.toFixed(4)}`;
+  }
+
   return (
-    <div className="risk-zone-alert-banner">
+    <div className="risk-zone-modal-overlay">
       <style>
         {`
-          @keyframes slideDown { from { top: -100px; opacity: 0; } to { top: 0; opacity: 1; } }
-          @keyframes pulseRed { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
-          .risk-zone-alert-banner {
+          @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+          @keyframes scaleUp { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+          @keyframes pulseRed { 0% { box-shadow: 0 8px 32px 0 rgba(220, 53, 69, 0.37); } 50% { box-shadow: 0 8px 32px 0 rgba(220, 53, 69, 0.7); } 100% { box-shadow: 0 8px 32px 0 rgba(220, 53, 69, 0.37); } }
+          
+          .risk-zone-modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
             z-index: 10000;
-            background: linear-gradient(135deg, #ff416c, #ff4b2b);
-            color: white;
-            text-align: center;
-            padding: 20px;
-            box-sizing: border-box;
-            animation: slideDown 0.5s ease-out, pulseRed 2s infinite;
-            border-bottom: 4px solid #8b0000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease-out;
           }
-          .risk-zone-alert-banner h2 {
-            margin: 0 0 10px 0;
-            font-size: 28px;
+          
+          .risk-zone-glass-modal {
+            background: rgba(40, 10, 10, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 100, 100, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            color: #fff;
+            text-align: center;
+            animation: scaleUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, pulseRed 2s infinite;
+            position: relative;
+            box-shadow: 0 8px 32px 0 rgba(220, 53, 69, 0.37);
+          }
+          
+          .risk-zone-glass-modal h2 {
+            margin: 0 0 15px 0;
+            color: #ff4d4d;
+            font-size: 26px;
             text-transform: uppercase;
             letter-spacing: 2px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
           }
-          .risk-zone-alert-banner p {
-            margin: 5px 0;
-            font-size: 18px;
+          
+          .risk-info-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            text-align: left;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
           }
+          
+          .risk-info-item {
+            display: flex;
+            flex-direction: column;
+          }
+          
+          .risk-info-label {
+            font-size: 12px;
+            color: #ffb3b3;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+          }
+          
+          .risk-info-value {
+            font-size: 16px;
+            font-weight: bold;
+          }
+
+          .reporters-section {
+            text-align: left;
+            margin-bottom: 20px;
+          }
+
           .reporters-list {
-            background: rgba(0,0,0,0.2);
-            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            padding: 10px 15px;
             border-radius: 8px;
-            margin-top: 10px;
-            display: inline-block;
+            margin-top: 5px;
+            max-height: 120px;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.05);
           }
+          
+          .reporters-list ul {
+            margin: 0;
+            padding-left: 20px;
+          }
+          
+          .reporters-list li {
+            margin-bottom: 4px;
+            font-size: 14px;
+          }
+          
           .dismiss-btn {
             position: absolute;
             top: 15px;
-            right: 20px;
-            background: transparent;
-            border: 2px solid white;
+            right: 15px;
+            background: rgba(255,255,255,0.1);
+            border: none;
             color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
             cursor: pointer;
             font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: all 0.3s;
           }
           .dismiss-btn:hover {
-            background: white;
-            color: #ff4b2b;
+            background: rgba(255, 50, 50, 0.8);
+          }
+          
+          .escape-btn {
+            display: block;
+            width: 100%;
+            background: linear-gradient(135deg, #28a745, #218838);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+          }
+          .escape-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.6);
+          }
+
+          /* Mobile Layout Improvements */
+          @media (max-width: 480px) {
+            .risk-zone-glass-modal {
+              width: 95%;
+              padding: 20px 15px;
+              border-radius: 15px;
+            }
+            .risk-zone-glass-modal h2 {
+              font-size: 20px;
+              margin-bottom: 10px;
+            }
+            .risk-info-grid {
+              gap: 8px;
+              padding: 10px;
+              margin-bottom: 15px;
+            }
+            .risk-info-label {
+              font-size: 10px;
+            }
+            .risk-info-value {
+              font-size: 14px;
+            }
+            .reporters-section {
+              margin-bottom: 15px;
+            }
+            .reporters-list {
+              max-height: 90px;
+              padding: 8px 10px;
+            }
+            .reporters-list li {
+              font-size: 12px;
+            }
+            .escape-btn {
+              padding: 12px;
+              font-size: 14px;
+            }
           }
         `}
       </style>
-      <button className="dismiss-btn" onClick={() => {
-        setDismissedZoneId(activeAlertZone.id);
-        setActiveAlertZone(null);
-      }}>Dismiss</button>
-      <h2>⚠️ Warning: You have entered a Risk Zone! ⚠️</h2>
-      <p><strong>Location:</strong> {activeAlertZone.name.replace("Potential Risk Zone: ", "")}</p>
       
-      {activeAlertZone.reporters && activeAlertZone.reporters.length > 0 && (
-        <div className="reporters-list">
-          <strong>This zone was reported by:</strong>
-          <br />
-          {activeAlertZone.reporters.join(', ')}
+      <div className="risk-zone-glass-modal">
+        <button className="dismiss-btn" onClick={() => {
+          setDismissedZoneId(activeAlertZone.id);
+          setActiveAlertZone(null);
+        }}>✕</button>
+        
+        <h2>⚠️ DANGER ZONE ⚠️</h2>
+        
+        <div className="risk-info-grid">
+          <div className="risk-info-item">
+            <span className="risk-info-label">Risk Area</span>
+            <span className="risk-info-value">{activeAlertZone.name}</span>
+          </div>
+          <div className="risk-info-item">
+            <span className="risk-info-label">Address / Coordinates</span>
+            <span className="risk-info-value">{locationName}</span>
+          </div>
+          <div className="risk-info-item">
+            <span className="risk-info-label">Distance to Safety</span>
+            <span className="risk-info-value" style={{color: '#ffc107'}}>{distanceToEdge} meters</span>
+          </div>
         </div>
-      )}
+        
+        {activeAlertZone.reporters && activeAlertZone.reporters.length > 0 && (
+          <div className="reporters-section">
+            <span className="risk-info-label">Reported By</span>
+            <div className="reporters-list">
+              <ul>
+                {activeAlertZone.reporters.map((rep, idx) => (
+                  <li key={idx}>
+                    {rep.name || rep} 
+                    {rep.time && <span style={{fontSize: '12px', color: '#aaa', marginLeft: '5px'}}>
+                      ({rep.time !== 'Unknown Time' ? new Date(rep.time).toLocaleString() : 'Unknown Time'})
+                    </span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+        
+        <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer" className="escape-btn">
+          🗺️ Open Safe Escape Route
+        </a>
+      </div>
     </div>
   );
 }

@@ -56,8 +56,17 @@ def recalculate_risk_zones(db):
         if len(loc_posts) >= settings.RISK_MIN_REPORTS:
             avg_lat = sum(p['latitude'] for p in loc_posts) / len(loc_posts)
             avg_lon = sum(p['longitude'] for p in loc_posts) / len(loc_posts)
-            # Extract unique reporters
-            reporters = list(set([p.get('reported_by', 'Anonymous User') for p in loc_posts]))
+            # Extract unique reporters and their times
+            reporters_data = []
+            seen_names = set()
+            for p in loc_posts:
+                name = p.get('reported_by', 'Anonymous User')
+                if name not in seen_names:
+                    seen_names.add(name)
+                    reporters_data.append({
+                        "name": name,
+                        "time": p.get('created_at', 'Unknown Time')
+                    })
             
             zone = {
                 "name": f"Potential Risk Zone: {loc_name}",
@@ -67,7 +76,7 @@ def recalculate_risk_zones(db):
                 "report_count": len(loc_posts),
                 "status": "Active",
                 "calculated_at": get_ist_now().isoformat(),
-                "reporters": reporters
+                "reporters": reporters_data
             }
             
             # Write to Firestore
