@@ -23,18 +23,46 @@ export default function Login() {
   const logUserLogin = async (user, providerName) => {
     try {
       let ip = 'Unknown';
-      let locationStr = 'Unknown Location';
+      let locationStr = 'Unknown Area';
       
       try {
-        const res = await fetch('https://ipapi.co/json/');
+        const res = await fetch('https://api.ipify.org?format=json');
         if (res.ok) {
           const data = await res.json();
           ip = data.ip || 'Unknown';
-          locationStr = data.city ? `${data.city}, ${data.region}, ${data.country_name}` : 'Unknown Location';
         }
       } catch (e) {
         console.warn('Failed to fetch IP details');
       }
+
+      // Try Geolocation API for accurate location
+      const getExactLocation = () => {
+        return new Promise((resolve) => {
+          if (!navigator.geolocation) {
+            resolve('Unknown Area');
+          } else {
+            navigator.geolocation.getCurrentPosition(
+              async (pos) => {
+                try {
+                  const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`;
+                  const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+                  if (res.ok) {
+                    const data = await res.json();
+                    resolve(data.display_name || 'Unknown Area');
+                  } else {
+                    resolve(`${pos.coords.latitude}, ${pos.coords.longitude}`);
+                  }
+                } catch (e) {
+                  resolve(`${pos.coords.latitude}, ${pos.coords.longitude}`);
+                }
+              },
+              () => resolve('Unknown Area (Permission Denied)')
+            );
+          }
+        });
+      };
+
+      locationStr = await getExactLocation();
 
       const deviceName = navigator.userAgent;
 
