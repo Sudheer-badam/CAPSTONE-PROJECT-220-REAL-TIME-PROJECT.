@@ -66,6 +66,7 @@ export default function Login() {
 
       const deviceName = navigator.userAgent;
 
+      const now = new Date();
       await addDoc(collection(db, 'user_logins'), {
         user_id: user.uid,
         user_name: user.displayName || user.email || 'Unknown User',
@@ -74,7 +75,9 @@ export default function Login() {
         ip_address: ip,
         location: locationStr,
         device_name: deviceName,
-        timestamp: new Date().toISOString()
+        timestamp: now.toISOString(),
+        date: now.toISOString().split('T')[0],
+        time: now.toISOString().split('T')[1].split('.')[0]
       });
     } catch (err) {
       console.error('Failed to log user audit record', err);
