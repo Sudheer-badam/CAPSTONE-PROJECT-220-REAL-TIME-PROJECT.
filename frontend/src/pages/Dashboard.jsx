@@ -205,7 +205,7 @@ export default function Dashboard() {
       )}
 
       {/* Safety Measures Toggle */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
         <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', background: safetyMeasuresEnabled ? '#d4edda' : '#f8f9fa', padding: '10px 15px', borderRadius: '8px', border: '1px solid #ccc' }}>
           <span style={{ marginRight: '10px', fontWeight: 'bold', color: safetyMeasuresEnabled ? '#155724' : '#6c757d' }}>
             {safetyMeasuresEnabled ? '🛡️ Safety Measures ENABLED' : 'Enable Safety Measures'}
