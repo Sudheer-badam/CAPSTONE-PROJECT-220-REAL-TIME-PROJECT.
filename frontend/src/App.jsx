@@ -146,7 +146,7 @@ function App() {
               onClick={() => { setIsSharingLocation(true); setLocationError(null); }}
               style={{ padding: '15px 40px', background: '#28a745', color: 'white', fontSize: '20px', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}
             >
-              📍 Enable Live Location
+              📍 Enable Location
             </button>
           ) : (
             <button 
