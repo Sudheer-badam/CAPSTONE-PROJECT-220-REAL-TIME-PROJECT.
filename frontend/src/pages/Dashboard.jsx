@@ -38,51 +38,21 @@ export default function Dashboard() {
   const [alarmStopped, setAlarmStopped] = useState(false);
   const [dangerReason, setDangerReason] = useState("");
   
-  const audioCtxRef = useRef(null);
-  const oscillatorRef = useRef(null);
-  const intervalRef = useRef(null);
+  const audioRef = useRef(null);
 
 
   const playSiren = () => {
     window.dispatchEvent(new Event('sosAlarmActive'));
     
-    if (!audioCtxRef.current) {
-      try {
-        audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
-      } catch (e) {
-        console.warn("AudioContext failed to initialize:", e);
-        return;
-      }
+    if (!audioRef.current) {
+      audioRef.current = new Audio('/purge_siren.mp3');
+      audioRef.current.loop = true;
     }
     
-    if (oscillatorRef.current) {
-      oscillatorRef.current.stop();
-      oscillatorRef.current.disconnect();
-    }
-    clearInterval(intervalRef.current);
-    
-    const ctx = audioCtxRef.current;
-    if (ctx.state === 'suspended') {
-        ctx.resume().catch(err => console.warn("Audio playback was blocked by browser. User interaction is needed.", err));
-    }
-    
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    
-    osc.type = 'square';
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    
-    osc.start();
-    oscillatorRef.current = osc;
-    
-    let isHigh = false;
-    intervalRef.current = setInterval(() => {
-      if (ctx.state === 'running' && osc) {
-        osc.frequency.setValueAtTime(isHigh ? 1200 : 800, ctx.currentTime);
-        isHigh = !isHigh;
-      }
-    }, 500);
+    // Play the audio
+    audioRef.current.play().catch(err => {
+      console.warn("Audio playback was blocked by browser. User interaction is needed.", err);
+    });
     
     // Try continuous vibration on supported devices
     if (navigator.vibrate) {
@@ -91,12 +61,10 @@ export default function Dashboard() {
   };
 
   const stopAlarm = () => {
-    if (oscillatorRef.current) {
-      oscillatorRef.current.stop();
-      oscillatorRef.current.disconnect();
-      oscillatorRef.current = null;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
     }
-    clearInterval(intervalRef.current);
     if (navigator.vibrate) {
       navigator.vibrate(0);
     }
