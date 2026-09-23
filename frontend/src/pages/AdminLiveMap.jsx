@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, LayersControl } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, LayersControl, Circle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { collection, onSnapshot, query } from 'firebase/firestore';
+import { collection, onSnapshot, query, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import L from 'leaflet';
 
@@ -17,16 +17,16 @@ const LiveUserIcon = L.icon({
 
 export default function AdminLiveMap() {
   const [liveUsers, setLiveUsers] = useState([]);
+  const [riskZones, setRiskZones] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Listen to live_user_locations
     const q = query(collection(db, "live_user_locations"));
-    const unsub = onSnapshot(q, (snapshot) => {
+    const unsubUsers = onSnapshot(q, (snapshot) => {
       const users = [];
       snapshot.forEach(doc => {
         const data = doc.data();
-        // Only show users who have updated their location in the last 10 minutes
         const now = new Date();
         const lastSeen = new Date(data.last_updated);
         const diffMinutes = (now - lastSeen) / 1000 / 60;
@@ -39,8 +39,34 @@ export default function AdminLiveMap() {
       setLoading(false);
     });
 
-    return () => unsub();
+    // Listen to Risk Zones
+    const unsubZones = onSnapshot(collection(db, "risk_zones"), (snapshot) => {
+      const zones = [];
+      snapshot.forEach(docObj => {
+        if (docObj.data().status === 'Active') {
+          zones.push({ id: docObj.id, ...docObj.data() });
+        }
+      });
+      setRiskZones(zones);
+    });
+
+    return () => {
+      unsubUsers();
+      unsubZones();
+    };
   }, []);
+
+  const handleRemoveZone = async (zoneId) => {
+    if (window.confirm("Are you sure you want to resolve and remove this Risk Zone?")) {
+      try {
+        await updateDoc(doc(db, "risk_zones", zoneId), { status: 'Resolved' });
+        alert("Risk Zone successfully removed!");
+      } catch (err) {
+        console.error("Error removing risk zone:", err);
+        alert("Failed to remove Risk Zone.");
+      }
+    }
+  };
 
   const defaultCenter = [16.50, 80.64];
 
@@ -98,6 +124,32 @@ export default function AdminLiveMap() {
                   </div>
                 </Popup>
               </Marker>
+            ))}
+
+            {/* Render Risk Zones for Admin to Manage */}
+            {riskZones.map(zone => (
+              <Circle 
+                key={`zone-${zone.id}`}
+                center={[zone.latitude, zone.longitude]} 
+                radius={zone.radius_meters}
+                pathOptions={{ color: 'red', fillColor: 'red', fillOpacity: 0.2 }}
+              >
+                <Popup>
+                  <div style={{ textAlign: 'center' }}>
+                    <strong style={{ fontSize: '16px', color: 'red' }}>{zone.name}</strong><br/>
+                    <span style={{ fontSize: '13px' }}>Reports in area: {zone.report_count}</span><br/>
+                    <button 
+                      onClick={() => handleRemoveZone(zone.id)}
+                      style={{
+                        marginTop: '10px', padding: '8px 15px', background: '#dc3545', color: 'white', 
+                        border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold'
+                      }}
+                    >
+                      Remove Risk Zone
+                    </button>
+                  </div>
+                </Popup>
+              </Circle>
             ))}
           </MapContainer>
         )}
