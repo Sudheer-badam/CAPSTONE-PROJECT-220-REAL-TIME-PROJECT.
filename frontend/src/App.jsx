@@ -33,7 +33,7 @@ function ThemeSwitcher() {
   return (
     <div className={`theme-switcher ${isOpen ? 'open' : ''}`}>
       <div className="theme-toggle" onClick={() => setIsOpen(!isOpen)}>
-        <span className="gear-icon">⚙️</span>
+        <span className="gear-icon">Theme</span>
       </div>
       <div className="theme-colors">
         {THEMES.map(t => (
@@ -136,7 +136,7 @@ function App() {
         <div style={{
           background: 'rgba(0,0,0,0.2)', padding: '50px', borderRadius: '15px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', maxWidth: '600px'
         }}>
-          <h2 style={{ fontSize: '32px', marginBottom: '20px' }}>⚠️ Location Access Required</h2>
+          <h2 style={{ fontSize: '32px', marginBottom: '20px' }}>Location Access Required</h2>
           <p style={{ fontSize: '18px', marginBottom: '30px', lineHeight: '1.6' }}>
             {locationError || "To ensure the safety features of this application function correctly, you must share your live location. Please enable location access to enter the platform."}
           </p>
@@ -146,7 +146,7 @@ function App() {
               onClick={() => { setIsSharingLocation(true); setLocationError(null); }}
               style={{ padding: '15px 40px', background: '#28a745', color: 'white', fontSize: '20px', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}
             >
-              📍 Enable Location
+              Enable Location
             </button>
           ) : (
             <button 
@@ -156,7 +156,7 @@ function App() {
               }}
               style={{ padding: '15px 40px', background: '#ffc107', color: '#000', fontSize: '20px', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}
             >
-              🔄 Retry / I Have Granted Permission
+              Retry / I Have Granted Permission
             </button>
           )}
 
@@ -176,7 +176,7 @@ function App() {
               onMouseOver={(e) => e.target.style.background = 'rgba(255,255,255,0.25)'}
               onMouseOut={(e) => e.target.style.background = 'rgba(255,255,255,0.15)'}
             >
-              🚪 Sign Out
+              Sign Out
             </button>
           </div>
         </div>
