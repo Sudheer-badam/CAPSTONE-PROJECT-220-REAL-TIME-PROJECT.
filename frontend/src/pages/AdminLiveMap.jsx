@@ -37,7 +37,6 @@ export default function AdminLiveMap() {
   const [riskZones, setRiskZones] = useState([]);
   const [sosEvents, setSosEvents] = useState([]);
   const [interactions, setInteractions] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Listen to live_user_locations
@@ -55,7 +54,8 @@ export default function AdminLiveMap() {
         }
       });
       setLiveUsers(users);
-      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching live_user_locations:", error);
     });
 
     // Listen to Risk Zones
@@ -67,6 +67,8 @@ export default function AdminLiveMap() {
         }
       });
       setRiskZones(zones);
+    }, (error) => {
+      console.error("Error fetching risk_zones:", error);
     });
 
     // Listen to active SOS Events
@@ -74,20 +76,37 @@ export default function AdminLiveMap() {
       const events = [];
       snapshot.forEach(docObj => {
         const data = docObj.data();
-        if (data.event_type === 'SOS' && data.status !== 'Resolved' && data.latitude && data.longitude) {
-          events.push({ id: docObj.id, ...data });
+        if (data.status !== 'Resolved' && data.latitude && data.longitude) {
+          events.push({ 
+            id: docObj.id, 
+            ...data,
+            latitude: parseFloat(data.latitude),
+            longitude: parseFloat(data.longitude)
+          });
         }
       });
       setSosEvents(events);
+    }, (error) => {
+      console.error("Error fetching iot_events:", error);
     });
 
     // Listen to Map Interactions (Blue Buttons)
     const unsubInteractions = onSnapshot(collection(db, "map_interactions"), (snapshot) => {
       const inters = [];
       snapshot.forEach(docObj => {
-        inters.push({ id: docObj.id, ...docObj.data() });
+        const data = docObj.data();
+        if (data.click_latitude && data.click_longitude) {
+          inters.push({ 
+            id: docObj.id, 
+            ...data,
+            click_latitude: parseFloat(data.click_latitude),
+            click_longitude: parseFloat(data.click_longitude)
+          });
+        }
       });
       setInteractions(inters);
+    }, (error) => {
+      console.error("Error fetching map_interactions:", error);
     });
 
     return () => {
@@ -142,10 +161,7 @@ export default function AdminLiveMap() {
           This map shows the real-time location of all active users who have opted into Live Location sharing.
         </p>
         
-        {loading ? (
-          <div>Loading live map data...</div>
-        ) : (
-          <MapContainer center={defaultCenter} zoom={13} className="leaflet-container" style={{ height: '700px', width: '100%', borderRadius: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+        <MapContainer center={defaultCenter} zoom={13} className="leaflet-container" style={{ height: '700px', width: '100%', borderRadius: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
             <ScaleControl position="bottomright" />
             <LayersControl position="topright">
               <LayersControl.BaseLayer checked name="Google Street">
@@ -255,7 +271,6 @@ export default function AdminLiveMap() {
               </Marker>
             ))}
           </MapContainer>
-        )}
       </div>
     </div>
   );
