@@ -91,12 +91,6 @@ export default function AdminLiveMap() {
               </LayersControl.BaseLayer>
               <LayersControl.BaseLayer name="Google Satellite">
                 <TileLayer
-                  url="https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
-                  attribution="&copy; Google Maps"
-                />
-              </LayersControl.BaseLayer>
-              <LayersControl.BaseLayer name="Google Hybrid">
-                <TileLayer
                   url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
                   attribution="&copy; Google Maps"
                 />
