@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, LayersControl } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { collection, onSnapshot, query } from 'firebase/firestore';
 import { db } from '../services/firebase';
@@ -55,11 +55,33 @@ export default function AdminLiveMap() {
         {loading ? (
           <div>Loading live map data...</div>
         ) : (
-          <MapContainer center={defaultCenter} zoom={13} className="leaflet-container" style={{ height: '600px', width: '100%' }}>
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
+          <MapContainer center={defaultCenter} zoom={13} className="leaflet-container" style={{ height: '700px', width: '100%', borderRadius: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+            <LayersControl position="topright">
+              <LayersControl.BaseLayer checked name="Google Street">
+                <TileLayer
+                  url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+                  attribution="&copy; Google Maps"
+                />
+              </LayersControl.BaseLayer>
+              <LayersControl.BaseLayer name="Google Satellite">
+                <TileLayer
+                  url="https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
+                  attribution="&copy; Google Maps"
+                />
+              </LayersControl.BaseLayer>
+              <LayersControl.BaseLayer name="Google Hybrid">
+                <TileLayer
+                  url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+                  attribution="&copy; Google Maps"
+                />
+              </LayersControl.BaseLayer>
+              <LayersControl.BaseLayer name="Google Terrain">
+                <TileLayer
+                  url="https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}"
+                  attribution="&copy; Google Maps"
+                />
+              </LayersControl.BaseLayer>
+            </LayersControl>
             
             {liveUsers.map(user => (
               <Marker key={user.id} position={[user.latitude, user.longitude]} icon={LiveUserIcon}>
