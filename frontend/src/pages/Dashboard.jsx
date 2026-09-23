@@ -15,7 +15,7 @@ const getDistance = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
-import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, limit, doc, updateDoc } from 'firebase/firestore';
 import { db, auth } from '../services/firebase';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -41,6 +41,8 @@ export default function Dashboard() {
   const audioCtxRef = useRef(null);
   const oscillatorRef = useRef(null);
   const intervalRef = useRef(null);
+  const adminEmails = ['badamsudheerreddy@gmail.com', '2300033278@kluniversity.in', '2300033278cseh2@gmail.com'];
+  const isAdminUser = auth.currentUser && adminEmails.includes(auth.currentUser.email);
 
 
   const playSiren = () => {
@@ -90,7 +92,7 @@ export default function Dashboard() {
     }
   };
 
-  const stopAlarm = () => {
+  const stopSiren = () => {
     if (oscillatorRef.current) {
       oscillatorRef.current.stop();
       oscillatorRef.current.disconnect();
@@ -100,8 +102,22 @@ export default function Dashboard() {
     if (navigator.vibrate) {
       navigator.vibrate(0);
     }
+  };
+
+  const stopAlarm = async () => {
+    stopSiren();
     setAlarmStopped(true);
     window.dispatchEvent(new Event('sosAlarmDismissed'));
+    
+    // Globally resolve the alarm for everyone if we have the event ID
+    if (activeAlarm && activeAlarm.id) {
+      try {
+        await updateDoc(doc(db, "iot_events", activeAlarm.id), { status: 'Resolved' });
+        console.log("Alarm resolved globally.");
+      } catch (e) {
+        console.error("Failed to resolve alarm globally:", e);
+      }
+    }
   };
 
   const closeBanner = () => {
@@ -168,8 +184,8 @@ export default function Dashboard() {
       if (!isInitialLoad) {
         snapshot.docChanges().forEach((change) => {
           if (change.type === "added") {
-            const data = change.doc.data();
-            if (data.event_type === 'SOS') {
+            const data = { id: change.doc.id, ...change.doc.data() };
+            if (data.event_type === 'SOS' && data.status !== 'Resolved') {
               const loc = locationRef.current;
               console.log("Received SOS Event:", data);
               if (loc && data.latitude && data.longitude) {
@@ -186,6 +202,13 @@ export default function Dashboard() {
               } else {
                 console.log("SOS ignored: Local location not available. Please allow location access.");
               }
+            }
+          }
+          
+          if (change.type === "modified") {
+            const data = { id: change.doc.id, ...change.doc.data() };
+            if (data.event_type === 'SOS' && data.status === 'Resolved') {
+              window.dispatchEvent(new CustomEvent('sosAlarmResolvedGlobal', { detail: data.id }));
             }
           }
         });
@@ -255,9 +278,16 @@ export default function Dashboard() {
           <p><strong>Location:</strong> {activeAlarm.latitude}, {activeAlarm.longitude}</p>
           
           {!alarmStopped ? (
-            <button onClick={stopAlarm}>
-              STOP ALARM
-            </button>
+            isAdminUser ? (
+              <button onClick={stopAlarm}>
+                STOP ALARM (Admin Only)
+              </button>
+            ) : (
+              <div style={{ marginTop: '20px', padding: '15px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+                <p style={{ margin: 0, fontWeight: 'bold', fontSize: '18px' }}>🚨 SIREN ACTIVE 🚨</p>
+                <p style={{ margin: '5px 0 0 0', fontSize: '14px' }}>Please wait. Only an Administrator can silence this alarm.</p>
+              </div>
+            )
           ) : (
             <div style={{ marginTop: '20px', background: 'rgba(0,0,0,0.1)', padding: '15px', borderRadius: '8px' }}>
               <h3 style={{ margin: '0 0 10px 0' }}>Activate Danger Zone</h3>
