@@ -272,37 +272,43 @@ export default function Dashboard() {
             </button>
           ) : (
             <div style={{ marginTop: '20px', background: 'rgba(0,0,0,0.1)', padding: '15px', borderRadius: '8px' }}>
-              <h3 style={{ margin: '0 0 10px 0' }}>Activate Danger Zone</h3>
-              <input 
-                type="text" 
-                placeholder="Reason (e.g. Suspicious Activity)" 
-                value={dangerReason} 
-                onChange={(e) => setDangerReason(e.target.value)}
-                style={{ width: '80%', padding: '10px', fontSize: '16px', borderRadius: '5px', border: 'none', marginBottom: '10px' }}
-              />
-              <br />
-              <button 
-                style={{ background: '#ffc107', color: '#000', marginRight: '10px' }}
-                onClick={async () => {
-                  if (!dangerReason) return alert("Please provide a reason to activate the Danger Zone.");
-                  try {
-                    const userName = auth.currentUser ? (auth.currentUser.displayName || auth.currentUser.email) : 'Unknown User';
-                    const { activateDangerZone } = await import('../services/api');
-                    await activateDangerZone({ 
-                      device_id: activeAlarm.device_code, 
-                      latitude: activeAlarm.latitude, 
-                      longitude: activeAlarm.longitude, 
-                      reason: dangerReason,
-                      user_name: userName 
-                    });
-                    closeBanner();
-                  } catch (e) {
-                    alert("Failed to activate Danger Zone.");
-                  }
-                }}
-              >
-                Activate Danger Zone
-              </button>
+              {auth.currentUser && ['admin@gmail.com'].includes(auth.currentUser.email) ? (
+                <>
+                  <h3 style={{ margin: '0 0 10px 0' }}>Activate Danger Zone</h3>
+                  <input 
+                    type="text" 
+                    placeholder="Reason (e.g. Suspicious Activity)" 
+                    value={dangerReason} 
+                    onChange={(e) => setDangerReason(e.target.value)}
+                    style={{ width: '80%', padding: '10px', fontSize: '16px', borderRadius: '5px', border: 'none', marginBottom: '10px' }}
+                  />
+                  <br />
+                  <button 
+                    style={{ background: '#ffc107', color: '#000', marginRight: '10px' }}
+                    onClick={async () => {
+                      if (!dangerReason) return alert("Please provide a reason to activate the Danger Zone.");
+                      try {
+                        const userName = auth.currentUser.displayName || auth.currentUser.email;
+                        const { activateDangerZone } = await import('../services/api');
+                        await activateDangerZone({ 
+                          device_id: activeAlarm.device_code, 
+                          latitude: activeAlarm.latitude, 
+                          longitude: activeAlarm.longitude, 
+                          reason: dangerReason,
+                          user_name: userName 
+                        });
+                        closeBanner();
+                      } catch (e) {
+                        alert("Failed to activate Danger Zone.");
+                      }
+                    }}
+                  >
+                    Activate Danger Zone
+                  </button>
+                </>
+              ) : (
+                <p style={{ fontSize: '16px', marginBottom: '15px' }}>Alarm silenced. Only administrators can activate Danger Zones.</p>
+              )}
               <button style={{ background: '#6c757d', color: '#fff' }} onClick={closeBanner}>
                 Dismiss
               </button>
