@@ -15,9 +15,19 @@ const LiveUserIcon = L.icon({
   shadowSize: [41, 41]
 });
 
+const AlertIcon = L.icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
+
 export default function AdminLiveMap() {
   const [liveUsers, setLiveUsers] = useState([]);
   const [riskZones, setRiskZones] = useState([]);
+  const [sosEvents, setSosEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -50,9 +60,22 @@ export default function AdminLiveMap() {
       setRiskZones(zones);
     });
 
+    // Listen to active SOS Events
+    const unsubSos = onSnapshot(collection(db, "iot_events"), (snapshot) => {
+      const events = [];
+      snapshot.forEach(docObj => {
+        const data = docObj.data();
+        if (data.event_type === 'SOS' && data.status !== 'Resolved' && data.latitude && data.longitude) {
+          events.push({ id: docObj.id, ...data });
+        }
+      });
+      setSosEvents(events);
+    });
+
     return () => {
       unsubUsers();
       unsubZones();
+      unsubSos();
     };
   }, []);
 
@@ -64,6 +87,17 @@ export default function AdminLiveMap() {
       } catch (err) {
         console.error("Error removing risk zone:", err);
         alert("Failed to remove Risk Zone.");
+      }
+    }
+  };
+
+  const handleRemoveSos = async (eventId) => {
+    if (window.confirm("Are you sure you want to resolve and remove this SOS Alert?")) {
+      try {
+        await updateDoc(doc(db, "iot_events", eventId), { status: 'Resolved' });
+      } catch (err) {
+        console.error("Error removing SOS alert:", err);
+        alert("Failed to remove SOS Alert.");
       }
     }
   };
@@ -145,6 +179,28 @@ export default function AdminLiveMap() {
                   </div>
                 </Popup>
               </Circle>
+            ))}
+
+            {/* Render Active SOS Events for Admin to Manage */}
+            {sosEvents.map(ev => (
+              <Marker key={`sos-${ev.id}`} position={[ev.latitude, ev.longitude]} icon={AlertIcon}>
+                <Popup>
+                  <div style={{ textAlign: 'center' }}>
+                    <strong style={{ fontSize: '16px', color: 'red' }}>🚨 {ev.event_type} ALERT</strong><br/>
+                    <strong>Device:</strong> {ev.device_code}<br/>
+                    <span style={{ fontSize: '12px', color: 'gray' }}>{new Date(ev.created_at).toLocaleString()}</span><br/>
+                    <button 
+                      onClick={() => handleRemoveSos(ev.id)}
+                      style={{
+                        marginTop: '10px', padding: '8px 15px', background: '#ffc107', color: 'black', 
+                        border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold'
+                      }}
+                    >
+                      Remove SOS Alert
+                    </button>
+                  </div>
+                </Popup>
+              </Marker>
             ))}
           </MapContainer>
         )}

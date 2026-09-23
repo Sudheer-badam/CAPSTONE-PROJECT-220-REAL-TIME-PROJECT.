@@ -134,7 +134,7 @@ export default function MapPage() {
       const events = [];
       snapshot.forEach(doc => {
         const p = doc.data();
-        if (p.latitude && p.longitude) {
+        if (p.latitude && p.longitude && p.status !== 'Resolved') {
           events.push({
             id: doc.id,
             device_code: p.device_code,
