@@ -33,7 +33,7 @@ function ThemeSwitcher() {
   return (
     <div className={`theme-switcher ${isOpen ? 'open' : ''}`}>
       <div className="theme-toggle" onClick={() => setIsOpen(!isOpen)}>
-        <span className="gear-icon">Theme</span>
+        <span className="gear-icon">⚙️</span>
       </div>
       <div className="theme-colors">
         {THEMES.map(t => (
