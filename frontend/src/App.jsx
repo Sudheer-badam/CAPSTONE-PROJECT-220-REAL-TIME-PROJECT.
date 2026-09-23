@@ -53,7 +53,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [isSharingLocation, setIsSharingLocation] = useState(false);
+  const [isSharingLocation, setIsSharingLocation] = useState(() => localStorage.getItem('isSharingLocation') === 'true');
   const [locationError, setLocationError] = useState(null);
 
   useEffect(() => {
@@ -92,6 +92,8 @@ function App() {
             console.error("Live location error:", err);
             if (err.code === 1) { // PERMISSION_DENIED
               setLocationError("Location access was denied by your browser. You MUST allow location access in your browser's site settings to use this application.");
+              localStorage.setItem('isSharingLocation', 'false');
+              setIsSharingLocation(false);
             } else {
               setLocationError("Could not get your location. Please check your GPS signal or ensure location services are enabled on your device.");
             }
@@ -143,7 +145,11 @@ function App() {
           
           {!isSharingLocation ? (
             <button 
-              onClick={() => { setIsSharingLocation(true); setLocationError(null); }}
+              onClick={() => { 
+                setIsSharingLocation(true); 
+                localStorage.setItem('isSharingLocation', 'true');
+                setLocationError(null); 
+              }}
               style={{ padding: '15px 40px', background: '#28a745', color: 'white', fontSize: '20px', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}
             >
               Enable Location
@@ -151,6 +157,7 @@ function App() {
           ) : (
             <button 
               onClick={() => {
+                localStorage.setItem('isSharingLocation', 'true');
                 setIsSharingLocation(false);
                 setTimeout(() => setIsSharingLocation(true), 100);
               }}
