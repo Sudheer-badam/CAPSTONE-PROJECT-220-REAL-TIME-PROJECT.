@@ -34,26 +34,14 @@ export default function Dashboard() {
   const locationRef = useRef(null);
 
   // Emergency Alarm State
-  const [safetyMeasuresEnabled, setSafetyMeasuresEnabled] = useState(false);
   const [activeAlarm, setActiveAlarm] = useState(null);
   const [alarmStopped, setAlarmStopped] = useState(false);
   const [dangerReason, setDangerReason] = useState("");
   
-  const safetyRef = useRef(false);
   const audioCtxRef = useRef(null);
   const oscillatorRef = useRef(null);
   const intervalRef = useRef(null);
 
-  const toggleSafety = () => {
-    const newState = !safetyMeasuresEnabled;
-    setSafetyMeasuresEnabled(newState);
-    safetyRef.current = newState;
-    
-    // Initialize Audio Context on user interaction to bypass browser autoplay blocks
-    if (newState && !audioCtxRef.current) {
-      audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
-    }
-  };
 
   const playSiren = () => {
     window.dispatchEvent(new Event('sosAlarmActive'));
@@ -311,20 +299,6 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Safety Measures Toggle */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-        <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', background: safetyMeasuresEnabled ? '#d4edda' : '#f8f9fa', padding: '10px 15px', borderRadius: '8px', border: '1px solid #ccc' }}>
-          <span style={{ marginRight: '10px', fontWeight: 'bold', color: safetyMeasuresEnabled ? '#155724' : '#6c757d' }}>
-            {safetyMeasuresEnabled ? '🛡️ Safety Measures ENABLED' : 'Enable Safety Measures'}
-          </span>
-          <input 
-            type="checkbox" 
-            checked={safetyMeasuresEnabled} 
-            onChange={toggleSafety}
-            style={{ width: '20px', height: '20px' }}
-          />
-        </label>
-      </div>
 
       <div className="dashboard-grid">
         <div className="stat-card">
