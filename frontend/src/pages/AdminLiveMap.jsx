@@ -95,14 +95,10 @@ export default function AdminLiveMap() {
       const inters = [];
       snapshot.forEach(docObj => {
         const data = docObj.data();
-        if (data.click_latitude && data.click_longitude) {
-          inters.push({ 
-            id: docObj.id, 
-            ...data,
-            click_latitude: parseFloat(data.click_latitude),
-            click_longitude: parseFloat(data.click_longitude)
-          });
-        }
+        inters.push({ 
+          id: docObj.id, 
+          ...data
+        });
       });
       setInteractions(inters);
     }, (error) => {
