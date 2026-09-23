@@ -415,15 +415,34 @@ export default function RiskZoneAlert() {
         <div className="risk-info-grid">
           <div className="risk-info-item">
             <span className="risk-info-label">Risk Area (Street)</span>
-            <span className="risk-info-value" style={{ fontSize: '13px' }}>{resolvedAddress}</span>
+            <span className="risk-info-value" style={{ fontSize: '13px' }}>{cleanAddress}</span>
           </div>
-          <div className="risk-info-item">
-            <span className="risk-info-label">Coordinates</span>
-            <span className="risk-info-value" style={{ fontFamily: 'monospace', color: '#ffcccc' }}>
-              Lat: {activeAlertZone.latitude.toFixed(6)} <br/>
-              Lng: {activeAlertZone.longitude.toFixed(6)}
-            </span>
+          
+          <div style={{ display: 'flex', gap: '15px' }}>
+            <div className="risk-info-item" style={{ flex: 1 }}>
+              <span className="risk-info-label">Coordinates</span>
+              <span className="risk-info-value" style={{ fontFamily: 'monospace', color: '#ffcccc' }}>
+                Lat: {activeAlertZone.latitude.toFixed(6)} <br/>
+                Lng: {activeAlertZone.longitude.toFixed(6)}
+              </span>
+            </div>
+
+            <div className="risk-info-item" style={{ flex: 1 }}>
+              <span className="risk-info-label">Purpose</span>
+              <span className="risk-info-value" style={{ 
+                color: '#0df', 
+                background: 'rgba(0, 221, 255, 0.15)', 
+                padding: '4px 8px', 
+                borderRadius: '4px', 
+                display: 'inline-block', 
+                border: '1px solid rgba(0, 221, 255, 0.4)',
+                textTransform: 'capitalize'
+              }}>
+                {purposeText}
+              </span>
+            </div>
           </div>
+
           <div className="risk-info-item">
             <span className="risk-info-label">Escape Direction</span>
             <span className="risk-info-value" style={{color: '#ffc107'}}>
