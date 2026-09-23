@@ -1,11 +1,19 @@
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, LayersControl, Circle, ScaleControl } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { collection, onSnapshot, query, doc, updateDoc } from 'firebase/firestore';
+import { collection, onSnapshot, query, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import L from 'leaflet';
 
-// Custom User Location Icon
+const UserIcon = L.icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
+
 const LiveUserIcon = L.icon({
   iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
@@ -28,6 +36,7 @@ export default function AdminLiveMap() {
   const [liveUsers, setLiveUsers] = useState([]);
   const [riskZones, setRiskZones] = useState([]);
   const [sosEvents, setSosEvents] = useState([]);
+  const [interactions, setInteractions] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -72,10 +81,20 @@ export default function AdminLiveMap() {
       setSosEvents(events);
     });
 
+    // Listen to Map Interactions (Blue Buttons)
+    const unsubInteractions = onSnapshot(collection(db, "map_interactions"), (snapshot) => {
+      const inters = [];
+      snapshot.forEach(docObj => {
+        inters.push({ id: docObj.id, ...docObj.data() });
+      });
+      setInteractions(inters);
+    });
+
     return () => {
       unsubUsers();
       unsubZones();
       unsubSos();
+      unsubInteractions();
     };
   }, []);
 
@@ -98,6 +117,17 @@ export default function AdminLiveMap() {
       } catch (err) {
         console.error("Error removing SOS alert:", err);
         alert("Failed to remove SOS Alert.");
+      }
+    }
+  };
+
+  const handleRemoveInteraction = async (interactionId) => {
+    if (window.confirm("Are you sure you want to permanently delete this map interaction?")) {
+      try {
+        await deleteDoc(doc(db, "map_interactions", interactionId));
+      } catch (err) {
+        console.error("Error removing interaction:", err);
+        alert("Failed to remove interaction.");
       }
     }
   };
@@ -197,6 +227,28 @@ export default function AdminLiveMap() {
                       }}
                     >
                       Remove SOS Alert
+                    </button>
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+
+            {/* Render User Map Interactions (Blue Dots) for Admin to Manage */}
+            {interactions.map(inter => (
+              <Marker key={`inter-${inter.id}`} position={[inter.click_latitude, inter.click_longitude]} icon={UserIcon}>
+                <Popup>
+                  <div style={{ textAlign: 'center' }}>
+                    <strong style={{ fontSize: '16px', color: '#0d6efd' }}>User Interaction</strong><br/>
+                    <strong>IP:</strong> {inter.ip_address}<br/>
+                    <span style={{ fontSize: '12px', color: 'gray' }}>{inter.timestamp}</span><br/>
+                    <button 
+                      onClick={() => handleRemoveInteraction(inter.id)}
+                      style={{
+                        marginTop: '10px', padding: '8px 15px', background: '#0d6efd', color: 'white', 
+                        border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold'
+                      }}
+                    >
+                      Delete Interaction
                     </button>
                   </div>
                 </Popup>
