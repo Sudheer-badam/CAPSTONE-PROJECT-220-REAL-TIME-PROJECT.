@@ -126,6 +126,48 @@ function App() {
     return <Login />;
   }
 
+  if (!isSharingLocation || locationError) {
+    return (
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
+        height: '100vh', width: '100vw', textAlign: 'center', background: 'var(--primary)',
+        color: 'white', position: 'fixed', top: 0, left: 0, zIndex: 9999
+      }}>
+        <div style={{
+          background: 'rgba(0,0,0,0.2)', padding: '50px', borderRadius: '15px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', maxWidth: '600px'
+        }}>
+          <h2 style={{ fontSize: '32px', marginBottom: '20px' }}>⚠️ Location Access Required</h2>
+          <p style={{ fontSize: '18px', marginBottom: '30px', lineHeight: '1.6' }}>
+            {locationError || "To ensure the safety features of this application function correctly, you must share your live location. Please enable location access to enter the platform."}
+          </p>
+          
+          {!isSharingLocation ? (
+            <button 
+              onClick={() => { setIsSharingLocation(true); setLocationError(null); }}
+              style={{ padding: '15px 40px', background: '#28a745', color: 'white', fontSize: '20px', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}
+            >
+              📍 Enable Live Location
+            </button>
+          ) : (
+            <button 
+              onClick={() => {
+                setIsSharingLocation(false);
+                setTimeout(() => setIsSharingLocation(true), 100);
+              }}
+              style={{ padding: '15px 40px', background: '#ffc107', color: '#000', fontSize: '20px', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}
+            >
+              🔄 Retry / I Have Granted Permission
+            </button>
+          )}
+
+          <div style={{ marginTop: '30px' }}>
+            <button onClick={handleSignOut} style={{ background: 'transparent', color: '#ccc', border: 'none', textDecoration: 'underline', cursor: 'pointer' }}>Sign Out</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="app-container">
       <RiskZoneAlert />
@@ -192,45 +234,11 @@ function App() {
       </header>
 
       <main>
-        {(!isSharingLocation || locationError) ? (
-          <div style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
-            height: '60vh', textAlign: 'center', background: 'var(--primary-light)', borderRadius: '15px', padding: '40px',
-            color: 'white', boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
-          }}>
-            <h2 style={{ fontSize: '32px', marginBottom: '20px' }}>⚠️ Location Access Required</h2>
-            <p style={{ fontSize: '18px', maxWidth: '600px', marginBottom: '30px', lineHeight: '1.6' }}>
-              {locationError || "To ensure the safety features of this application function correctly, you must share your live location."}
-            </p>
-            
-            {!isSharingLocation ? (
-              <button 
-                onClick={() => { setIsSharingLocation(true); setLocationError(null); }}
-                style={{ padding: '15px 40px', background: '#28a745', color: 'white', fontSize: '20px', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}
-              >
-                📍 Enable Live Location
-              </button>
-            ) : (
-              <button 
-                onClick={() => {
-                  setIsSharingLocation(false);
-                  setTimeout(() => setIsSharingLocation(true), 100);
-                }}
-                style={{ padding: '15px 40px', background: '#ffc107', color: '#000', fontSize: '20px', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}
-              >
-                🔄 Retry / I Have Granted Permission
-              </button>
-            )}
-          </div>
-        ) : (
-          <>
-            {activeTab === 'dashboard' && <Dashboard />}
-            {activeTab === 'map' && <MapPage />}
-            {activeTab === 'iot' && <IoTEvents />}
-            {activeTab === 'metrics' && <ModelMetrics />}
-            {activeTab === 'admin-map' && <AdminLiveMap />}
-          </>
-        )}
+        {activeTab === 'dashboard' && <Dashboard />}
+        {activeTab === 'map' && <MapPage />}
+        {activeTab === 'iot' && <IoTEvents />}
+        {activeTab === 'metrics' && <ModelMetrics />}
+        {activeTab === 'admin-map' && <AdminLiveMap />}
       </main>
     </div>
   )
