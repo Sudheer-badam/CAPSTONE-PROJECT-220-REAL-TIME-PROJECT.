@@ -186,6 +186,15 @@ export default function RiskZoneAlert() {
   
   const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.latitude},${userLocation.longitude}&destination=${safePoint.latitude},${safePoint.longitude}&travelmode=walking`;
 
+  let purposeText = "Unknown";
+  let cleanAddress = resolvedAddress || "Unknown Location";
+  
+  if (resolvedAddress && resolvedAddress.startsWith("Purpose: ")) {
+    const parts = resolvedAddress.split(" - ");
+    purposeText = parts[0].replace("Purpose: ", "").trim();
+    cleanAddress = parts.slice(1).join(" - ").trim();
+  }
+
   return (
     <div className="risk-zone-modal-overlay">
       <style>
