@@ -298,7 +298,12 @@ def iot_location_update(data: schemas.IoTLocationInput, background_tasks: Backgr
 def iot_sos(data: schemas.IoTSOSInput, background_tasks: BackgroundTasks, db = Depends(get_db)):
     if not db: raise HTTPException(status_code=500)
     
-    # --- BATCH WRITES FOR ZERO-LATENCY INSTANT UI UPDATE ---
+    # --- FETCH ADDRESS SYNCHRONOUSLY ---
+    address = get_address_from_coords(data.latitude, data.longitude)
+    base_message = f"EMERGENCY at: {address}"
+    final_message = f"{base_message} (Triggered by: {data.user_name})" if data.user_name else base_message
+    
+    # --- BATCH WRITES ---
     batch = db.batch()
     
     device_ref = db.collection('iot_devices').document(data.device_id)
@@ -318,33 +323,20 @@ def iot_sos(data: schemas.IoTSOSInput, background_tasks: BackgroundTasks, db = D
         "event_type": "SOS",
         "latitude": data.latitude,
         "longitude": data.longitude,
-        "message": f"EMERGENCY SOS Triggered (Resolving Address...)",
+        "message": final_message,
         "date": get_ist_now().strftime('%Y-%m-%d'),
         "time": get_ist_now().strftime('%H:%M:%S'),
         "created_at": get_ist_now().isoformat()
     })
     
-    # Commit all immediate writes at once for blazing fast performance
+    # Commit all writes
     batch.commit()
     
-    # --- BACKGROUND TASK FOR HEAVY LIFTING ---
-    def process_sos_background(lat, lon, user_name, event_id):
-        try:
-            address = get_address_from_coords(lat, lon)
-            
-            bg_batch = db.batch()
-            
-            # Update the event with the resolved address
-            base_message = f"EMERGENCY at: {address}"
-            final_message = f"{base_message} (Triggered by: {user_name})" if user_name else base_message
-            bg_batch.update(db.collection('iot_events').document(event_id), {"message": final_message})
-            
-            bg_batch.commit()
-            cleanup_old_iot_events(db)
-        except Exception as e:
-            print(f"Error in background SOS processing: {e}")
-
-    background_tasks.add_task(process_sos_background, data.latitude, data.longitude, data.user_name, event_ref.id)
+    # Cleanup old events
+    try:
+        cleanup_old_iot_events(db)
+    except Exception as e:
+        print(f"Cleanup error: {e}")
     
     return {
         "success": True,
