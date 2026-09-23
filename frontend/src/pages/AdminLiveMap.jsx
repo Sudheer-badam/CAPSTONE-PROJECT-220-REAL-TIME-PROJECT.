@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, LayersControl, Circle } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, LayersControl, Circle, ScaleControl } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { collection, onSnapshot, query, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
@@ -82,6 +82,7 @@ export default function AdminLiveMap() {
           <div>Loading live map data...</div>
         ) : (
           <MapContainer center={defaultCenter} zoom={13} className="leaflet-container" style={{ height: '700px', width: '100%', borderRadius: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+            <ScaleControl position="bottomright" />
             <LayersControl position="topright">
               <LayersControl.BaseLayer checked name="Google Street">
                 <TileLayer

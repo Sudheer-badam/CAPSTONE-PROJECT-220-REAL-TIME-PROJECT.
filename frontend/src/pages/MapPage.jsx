@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Circle, LayersControl, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle, LayersControl, useMapEvents, ScaleControl } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { collection, onSnapshot, addDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
@@ -168,6 +168,7 @@ export default function MapPage() {
         </p>
         
         <MapContainer center={defaultCenter} zoom={13} className="leaflet-container">
+          <ScaleControl position="bottomright" />
           <LayersControl position="topright">
             
             <LayersControl.BaseLayer checked name="OpenStreetMap (Street)">
