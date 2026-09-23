@@ -161,7 +161,23 @@ function App() {
           )}
 
           <div style={{ marginTop: '30px' }}>
-            <button onClick={handleSignOut} style={{ background: 'transparent', color: '#ccc', border: 'none', textDecoration: 'underline', cursor: 'pointer' }}>Sign Out</button>
+            <button 
+              onClick={handleSignOut} 
+              style={{ 
+                padding: '10px 25px', 
+                background: 'rgba(255,255,255,0.15)', 
+                color: 'white', 
+                fontSize: '16px', 
+                border: '1px solid rgba(255,255,255,0.3)', 
+                borderRadius: '8px', 
+                cursor: 'pointer', 
+                transition: 'background 0.3s' 
+              }}
+              onMouseOver={(e) => e.target.style.background = 'rgba(255,255,255,0.25)'}
+              onMouseOut={(e) => e.target.style.background = 'rgba(255,255,255,0.15)'}
+            >
+              🚪 Sign Out
+            </button>
           </div>
         </div>
       </div>
@@ -213,18 +229,8 @@ function App() {
             </button>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto', marginRight: '15px' }}>
-            <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', background: isSharingLocation ? '#d4edda' : '#f8f9fa', padding: '5px 10px', borderRadius: '5px', border: '1px solid #ccc' }}>
-              <input 
-                type="checkbox" 
-                checked={isSharingLocation} 
-                onChange={(e) => setIsSharingLocation(e.target.checked)} 
-                style={{ marginRight: '8px' }}
-              />
-              <span style={{ fontSize: '14px', color: isSharingLocation ? '#155724' : '#6c757d', fontWeight: 'bold' }}>
-                {isSharingLocation ? 'Sharing Live Location' : 'Share Location'}
-              </span>
-            </label>
+          <div style={{ marginLeft: 'auto' }}>
+            {/* Location sharing is now permanently active after initial grant */}
           </div>
 
           <button className="logout-btn" onClick={handleSignOut}>
