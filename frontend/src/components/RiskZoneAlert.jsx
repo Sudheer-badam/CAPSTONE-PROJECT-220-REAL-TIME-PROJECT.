@@ -61,6 +61,7 @@ export default function RiskZoneAlert() {
   const [userLocation, setUserLocation] = useState(null);
   const [riskZones, setRiskZones] = useState([]);
   const [activeAlertZone, setActiveAlertZone] = useState(null);
+  const [ignoredZones, setIgnoredZones] = useState([]);
   const [resolvedAddress, setResolvedAddress] = useState("");
   
   const adminEmails = ['badamsudheerreddy@gmail.com', '2300033278@kluniversity.in', '2300033278cseh2@gmail.com'];
@@ -127,6 +128,8 @@ export default function RiskZoneAlert() {
 
     let foundZone = null;
     for (const zone of riskZones) {
+      if (ignoredZones.includes(zone.id)) continue;
+      
       const dist = getDistanceInMeters(
         userLocation.latitude, 
         userLocation.longitude, 
@@ -141,7 +144,7 @@ export default function RiskZoneAlert() {
     }
 
     setActiveAlertZone(foundZone);
-  }, [userLocation, riskZones]);
+  }, [userLocation, riskZones, ignoredZones]);
 
   // Resolve address dynamically for the active zone
   useEffect(() => {
@@ -461,23 +464,17 @@ export default function RiskZoneAlert() {
         
         {isAdminUser && (
           <button 
-            onClick={async () => {
-              if(window.confirm("Admin: Are you sure you want to permanently remove this Danger Zone?")) {
-                try {
-                  await updateDoc(doc(db, "risk_zones", activeAlertZone.id), { status: 'Resolved' });
-                  setActiveAlertZone(null);
-                } catch(e) {
-                  alert("Failed to remove Danger Zone");
-                }
-              }
+            onClick={() => {
+              setIgnoredZones(prev => [...prev, activeAlertZone.id]);
+              setActiveAlertZone(null);
             }}
             style={{
-              marginTop: '15px', padding: '12px', background: '#dc3545', color: 'white', 
-              border: 'none', borderRadius: '8px', fontWeight: 'bold', fontSize: '14px',
+              marginTop: '15px', padding: '12px', background: '#343a40', color: 'white', 
+              border: '1px solid #495057', borderRadius: '8px', fontWeight: 'bold', fontSize: '14px',
               width: '100%', cursor: 'pointer', display: 'flex', justifyContent: 'center', gap: '8px'
             }}
           >
-            🗑️ Remove Danger Zone (Admin Only)
+            🙈 Hide Warning For Me (Admin Only)
           </button>
         )}
       </div>
