@@ -23,15 +23,15 @@ app = FastAPI(
 
 def get_address_from_coords(lat, lon):
     try:
-        url = f"https://nominatim.openstreetmap.org/reverse?format=json&lat={lat}&lon={lon}"
-        headers = {'User-Agent': 'WomensSafetyApp/1.0'}
+        url = f"https://nominatim.openstreetmap.org/reverse?format=json&lat={lat}&lon={lon}&zoom=18&addressdetails=1"
+        headers = {'User-Agent': 'WomensSafetyApp-LiveTracker/1.0 (admin@womenssafety.com)'}
         response = requests.get(url, headers=headers, timeout=5)
         if response.status_code == 200:
             data = response.json()
-            return data.get('display_name', 'Unknown Location')
+            return data.get('display_name', f"GPS: {lat}, {lon}")
     except Exception as e:
         print(f"Error reverse geocoding: {e}")
-    return "Unknown Location"
+    return f"GPS: {lat}, {lon}"
 
 app.add_middleware(
     CORSMiddleware,

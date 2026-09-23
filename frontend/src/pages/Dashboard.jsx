@@ -364,7 +364,7 @@ export default function Dashboard() {
                     device_code: 'SIMULATOR-001',
                     latitude: cachedLocation.lat,
                     longitude: cachedLocation.lon,
-                    message: 'SOS Panic Button pressed (Simulated)',
+                    message: 'EMERGENCY! (Locating Street...)',
                     event_type: 'SOS'
                   };
                   setActiveAlarm(fakeEventData);
