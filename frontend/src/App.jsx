@@ -20,7 +20,11 @@ const THEMES = [
   { id: 'dark', primary: '#1a202c', light: '#2d3748' }
 ];
 
-const ADMIN_EMAILS = ['admin@gmail.com']; // Configurable list of admin emails
+const ADMIN_EMAILS = [
+  'badamsudheerreddy@gmail.com',
+  '2300033278@kluniversity.in',
+  '2300033278cseh2@gmail.com'
+]; // Configurable list of admin emails
 
 function ThemeSwitcher() {
   const [isOpen, setIsOpen] = useState(false);
