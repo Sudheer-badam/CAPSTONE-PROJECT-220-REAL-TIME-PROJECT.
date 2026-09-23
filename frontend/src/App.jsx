@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { onAuthStateChanged, signOut } from 'firebase/auth'
-import { auth } from './services/firebase'
+import { auth, db } from './services/firebase'
+import { doc, setDoc } from 'firebase/firestore'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import MapPage from './pages/MapPage'
 import IoTEvents from './pages/IoTEvents'
 import ModelMetrics from './pages/ModelMetrics'
+import AdminLiveMap from './pages/AdminLiveMap'
 import RiskZoneAlert from './components/RiskZoneAlert'
 import './index.css'
 
@@ -17,6 +19,8 @@ const THEMES = [
   { id: 'pink', primary: '#9d174d', light: '#ec4899' },
   { id: 'dark', primary: '#1a202c', light: '#2d3748' }
 ];
+
+const ADMIN_EMAILS = ['admin@gmail.com']; // Configurable list of admin emails
 
 function ThemeSwitcher() {
   const [isOpen, setIsOpen] = useState(false);
@@ -49,6 +53,8 @@ function App() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [isSharingLocation, setIsSharingLocation] = useState(false);
+  const [locationError, setLocationError] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -57,6 +63,56 @@ function App() {
     });
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    let watchId;
+    if (isSharingLocation && user) {
+      if (navigator.geolocation) {
+        watchId = navigator.geolocation.watchPosition(
+          async (pos) => {
+            setLocationError(null);
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            try {
+              const userRef = doc(db, 'live_user_locations', user.uid);
+              await setDoc(userRef, {
+                user_id: user.uid,
+                user_name: user.displayName || user.email || 'Unknown',
+                email: user.email,
+                latitude: lat,
+                longitude: lon,
+                is_sharing: true,
+                last_updated: new Date().toISOString()
+              }, { merge: true });
+            } catch (err) {
+              console.error("Failed to update live location:", err);
+            }
+          },
+          (err) => {
+            console.error("Live location error:", err);
+            if (err.code === 1) { // PERMISSION_DENIED
+              setLocationError("Location access was denied by your browser. You MUST allow location access in your browser's site settings to use this application.");
+            } else {
+              setLocationError("Could not get your location. Please check your GPS signal or ensure location services are enabled on your device.");
+            }
+          },
+          { enableHighAccuracy: true }
+        );
+      } else {
+        setLocationError("Geolocation is not supported by your browser.");
+        setIsSharingLocation(false);
+      }
+    } else if (!isSharingLocation && user) {
+      // Mark as not sharing
+      const userRef = doc(db, 'live_user_locations', user.uid);
+      setDoc(userRef, { is_sharing: false, last_updated: new Date().toISOString() }, { merge: true }).catch(console.error);
+      setLocationError("Location sharing is currently turned OFF.");
+    }
+
+    return () => {
+      if (watchId) navigator.geolocation.clearWatch(watchId);
+    };
+  }, [isSharingLocation, user]);
 
   const handleSignOut = () => {
     signOut(auth).catch(console.error);
@@ -104,6 +160,31 @@ function App() {
           >
             Model Performance
           </button>
+
+          {user && ADMIN_EMAILS.includes(user.email) && (
+            <button 
+              className={`nav-admin-map ${activeTab === 'admin-map' ? 'active' : ''}`} 
+              onClick={() => setActiveTab('admin-map')}
+              style={{ background: '#dc3545', color: '#fff' }}
+            >
+              Admin Live Map
+            </button>
+          )}
+
+          <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto', marginRight: '15px' }}>
+            <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', background: isSharingLocation ? '#d4edda' : '#f8f9fa', padding: '5px 10px', borderRadius: '5px', border: '1px solid #ccc' }}>
+              <input 
+                type="checkbox" 
+                checked={isSharingLocation} 
+                onChange={(e) => setIsSharingLocation(e.target.checked)} 
+                style={{ marginRight: '8px' }}
+              />
+              <span style={{ fontSize: '14px', color: isSharingLocation ? '#155724' : '#6c757d', fontWeight: 'bold' }}>
+                {isSharingLocation ? 'Sharing Live Location' : 'Share Location'}
+              </span>
+            </label>
+          </div>
+
           <button className="logout-btn" onClick={handleSignOut}>
             Sign Out
           </button>
@@ -111,10 +192,45 @@ function App() {
       </header>
 
       <main>
-        {activeTab === 'dashboard' && <Dashboard />}
-        {activeTab === 'map' && <MapPage />}
-        {activeTab === 'iot' && <IoTEvents />}
-        {activeTab === 'metrics' && <ModelMetrics />}
+        {(!isSharingLocation || locationError) ? (
+          <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
+            height: '60vh', textAlign: 'center', background: 'var(--primary-light)', borderRadius: '15px', padding: '40px',
+            color: 'white', boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
+          }}>
+            <h2 style={{ fontSize: '32px', marginBottom: '20px' }}>⚠️ Location Access Required</h2>
+            <p style={{ fontSize: '18px', maxWidth: '600px', marginBottom: '30px', lineHeight: '1.6' }}>
+              {locationError || "To ensure the safety features of this application function correctly, you must share your live location."}
+            </p>
+            
+            {!isSharingLocation ? (
+              <button 
+                onClick={() => { setIsSharingLocation(true); setLocationError(null); }}
+                style={{ padding: '15px 40px', background: '#28a745', color: 'white', fontSize: '20px', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}
+              >
+                📍 Enable Live Location
+              </button>
+            ) : (
+              <button 
+                onClick={() => {
+                  setIsSharingLocation(false);
+                  setTimeout(() => setIsSharingLocation(true), 100);
+                }}
+                style={{ padding: '15px 40px', background: '#ffc107', color: '#000', fontSize: '20px', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}
+              >
+                🔄 Retry / I Have Granted Permission
+              </button>
+            )}
+          </div>
+        ) : (
+          <>
+            {activeTab === 'dashboard' && <Dashboard />}
+            {activeTab === 'map' && <MapPage />}
+            {activeTab === 'iot' && <IoTEvents />}
+            {activeTab === 'metrics' && <ModelMetrics />}
+            {activeTab === 'admin-map' && <AdminLiveMap />}
+          </>
+        )}
       </main>
     </div>
   )

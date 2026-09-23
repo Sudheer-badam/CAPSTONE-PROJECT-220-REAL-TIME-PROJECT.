@@ -358,10 +358,26 @@ export default function Dashboard() {
                 if (!cachedLocation) return alert("Waiting for GPS lock... please ensure location access is allowed.");
                 try {
                   const userName = auth.currentUser ? (auth.currentUser.displayName || auth.currentUser.email) : 'Unknown User';
+                  
+                  // INSTANT UI FEEDBACK: Trigger alarm locally before network request
+                  const fakeEventData = {
+                    device_code: 'SIMULATOR-001',
+                    latitude: cachedLocation.lat,
+                    longitude: cachedLocation.lon,
+                    message: 'SOS Panic Button pressed (Simulated)',
+                    event_type: 'SOS'
+                  };
+                  setActiveAlarm(fakeEventData);
+                  setAlarmStopped(false);
+                  setDangerReason("");
+                  playSiren();
+
                   const { triggerSOS } = await import('../services/api');
                   await triggerSOS({ device_id: 'SIMULATOR-001', latitude: cachedLocation.lat, longitude: cachedLocation.lon, user_name: userName });
-                  // Removed blocking alert() so UI renders instantly!
-                } catch (e) { alert("Failed to trigger SOS."); }
+                } catch (e) { 
+                  console.error(e);
+                  alert("Failed to trigger SOS."); 
+                }
               }}
               style={{ flex: '1 1 200px', padding: '10px 20px', background: '#dc3545', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
             >
