@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { collection, onSnapshot, doc, updateDoc } from 'firebase/firestore';
-import { db, auth } from '../services/firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from '../services/firebase';
 
 // Haversine formula to calculate distance between two lat/lngs in meters
 function getDistanceInMeters(lat1, lon1, lat2, lon2) {
@@ -62,9 +62,6 @@ export default function RiskZoneAlert() {
   const [riskZones, setRiskZones] = useState([]);
   const [activeAlertZone, setActiveAlertZone] = useState(null);
   const [resolvedAddress, setResolvedAddress] = useState("");
-  
-  const adminEmails = ['badamsudheerreddy@gmail.com', '2300033278@kluniversity.in', '2300033278cseh2@gmail.com'];
-  const isAdminUser = auth.currentUser && adminEmails.includes(auth.currentUser.email);
   const [isAlarmActive, setIsAlarmActive] = useState(false);
 
   // Listen for global SOS alarm events from Dashboard
@@ -458,28 +455,6 @@ export default function RiskZoneAlert() {
         <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer" className="escape-btn">
           🗺️ Open Safe Escape Route
         </a>
-        
-        {isAdminUser && (
-          <button 
-            onClick={async () => {
-              if(window.confirm("Admin: Are you sure you want to permanently remove this Danger Zone?")) {
-                try {
-                  await updateDoc(doc(db, "risk_zones", activeAlertZone.id), { status: 'Resolved' });
-                  setActiveAlertZone(null);
-                } catch(e) {
-                  alert("Failed to remove Danger Zone");
-                }
-              }
-            }}
-            style={{
-              marginTop: '15px', padding: '12px', background: '#dc3545', color: 'white', 
-              border: 'none', borderRadius: '8px', fontWeight: 'bold', fontSize: '14px',
-              width: '100%', cursor: 'pointer', display: 'flex', justifyContent: 'center', gap: '8px'
-            }}
-          >
-            🗑️ Remove Danger Zone (Admin Only)
-          </button>
-        )}
       </div>
     </div>
   );
