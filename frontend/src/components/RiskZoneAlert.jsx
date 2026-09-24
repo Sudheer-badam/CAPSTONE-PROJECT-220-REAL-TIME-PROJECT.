@@ -451,6 +451,12 @@ export default function RiskZoneAlert() {
               </span>
             </div>
           </div>
+          <div className="risk-info-item" style={{ marginTop: '10px' }}>
+            <span className="risk-info-label">Danger Zone Radius</span>
+            <span className="risk-info-value" style={{ color: '#ff7675' }}>
+              {activeAlertZone.radius_meters || 50} Meters
+            </span>
+          </div>
 
           <div className="risk-info-item">
             <span className="risk-info-label">Escape Direction</span>

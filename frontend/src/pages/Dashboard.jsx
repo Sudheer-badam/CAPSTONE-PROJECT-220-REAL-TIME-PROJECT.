@@ -37,6 +37,7 @@ export default function Dashboard() {
   const [activeAlarm, setActiveAlarm] = useState(null);
   const [alarmStopped, setAlarmStopped] = useState(false);
   const [dangerReason, setDangerReason] = useState("");
+  const [dangerRadius, setDangerRadius] = useState(50);
   
   const audioRef = useRef(null);
 
@@ -76,6 +77,7 @@ export default function Dashboard() {
     setActiveAlarm(null);
     setAlarmStopped(false);
     setDangerReason("");
+    setDangerRadius(50);
   };
 
   useEffect(() => {
@@ -147,6 +149,7 @@ export default function Dashboard() {
                   setActiveAlarm(data);
                   setAlarmStopped(false);
                   setDangerReason("");
+                  setDangerRadius(50);
                   playSiren();
                 } else {
                   console.log("SOS ignored: Distance is greater than 50m.");
@@ -237,10 +240,20 @@ export default function Dashboard() {
                 style={{ width: '80%', padding: '10px', fontSize: '16px', borderRadius: '5px', border: 'none', marginBottom: '10px' }}
               />
               <br />
+              <input 
+                type="number" 
+                placeholder="Radius (in meters, e.g. 10)" 
+                value={dangerRadius} 
+                onChange={(e) => setDangerRadius(e.target.value)}
+                style={{ width: '80%', padding: '10px', fontSize: '16px', borderRadius: '5px', border: 'none', marginBottom: '10px' }}
+                min="1"
+              />
+              <br />
               <button 
                 style={{ background: '#ffc107', color: '#000', marginRight: '10px' }}
                 onClick={async () => {
                   if (!dangerReason) return alert("Please provide a reason to activate the Danger Zone.");
+                  if (!dangerRadius || dangerRadius <= 0) return alert("Please provide a valid radius greater than 0.");
                   try {
                     const userName = auth.currentUser ? (auth.currentUser.displayName || auth.currentUser.email) : 'Unknown User';
                     const { activateDangerZone } = await import('../services/api');
@@ -249,7 +262,8 @@ export default function Dashboard() {
                       latitude: activeAlarm.latitude, 
                       longitude: activeAlarm.longitude, 
                       reason: dangerReason,
-                      user_name: userName 
+                      user_name: userName,
+                      radius_meters: Number(dangerRadius)
                     });
                     closeBanner();
                   } catch (e) {
@@ -312,6 +326,7 @@ export default function Dashboard() {
                   setActiveAlarm(fakeEventData);
                   setAlarmStopped(false);
                   setDangerReason("");
+                  setDangerRadius(50);
                   playSiren();
 
                   const { triggerSOS } = await import('../services/api');

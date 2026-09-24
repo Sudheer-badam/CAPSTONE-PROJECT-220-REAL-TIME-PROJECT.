@@ -356,7 +356,7 @@ def activate_danger_zone(data: schemas.ActivateDangerZoneInput, background_tasks
         "name": f"Purpose: {data.reason} - Potential Risk Zone: Emergency Location",
         "latitude": data.latitude,
         "longitude": data.longitude,
-        "radius_meters": 50.0,
+        "radius_meters": data.radius_meters,
         "report_count": 1,
         "status": "Active",
         "calculated_at": get_ist_now().isoformat(),

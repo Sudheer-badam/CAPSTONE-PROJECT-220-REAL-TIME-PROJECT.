@@ -21,6 +21,7 @@ class ActivateDangerZoneInput(BaseModel):
     longitude: float
     reason: str
     user_name: Optional[str] = None
+    radius_meters: Optional[float] = 50.0
 
 # --- Response Schemas ---
 class RiskZoneCheckResponse(BaseModel):
