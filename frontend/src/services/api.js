@@ -16,5 +16,6 @@ export const getModelMetrics = () => api.get('/api/model/metrics');
 export const triggerSOS = (data) => api.post('/api/iot/sos', data);
 export const triggerLocationUpdate = (data) => api.post('/api/iot/location', data);
 export const activateDangerZone = (data) => api.post('/api/iot/danger-zone', data);
+export const runAnalysis = () => api.post('/api/analysis/run');
 
 export default api;
