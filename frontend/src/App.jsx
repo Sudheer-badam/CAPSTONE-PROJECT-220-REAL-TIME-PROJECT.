@@ -26,6 +26,16 @@ const ADMIN_EMAILS = [
   '2300033278cseh2@gmail.com'
 ]; // Configurable list of admin emails
 
+const getDeviceOS = () => {
+  const ua = navigator.userAgent;
+  if (/android/i.test(ua)) return "Android";
+  if (/iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return "iOS";
+  if (/Mac OS X/.test(ua)) return "Mac";
+  if (/Windows/.test(ua)) return "Windows";
+  if (/Linux/.test(ua)) return "Linux";
+  return "Unknown Device";
+};
+
 function ThemeSwitcher() {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -86,6 +96,7 @@ function App() {
                 latitude: lat,
                 longitude: lon,
                 is_sharing: true,
+                device_os: getDeviceOS(),
                 last_updated: new Date().toISOString()
               }, { merge: true });
             } catch (err) {
@@ -120,7 +131,10 @@ function App() {
       // RAPID SPEED LIVE: Heartbeat every 3 seconds to prove the user is currently on the website
       intervalId = setInterval(() => {
         const userRef = doc(db, 'live_user_locations', user.uid);
-        setDoc(userRef, { last_updated: new Date().toISOString() }, { merge: true }).catch(console.error);
+        setDoc(userRef, { 
+          last_updated: new Date().toISOString(),
+          device_os: getDeviceOS()
+        }, { merge: true }).catch(console.error);
       }, 3000);
     }
 

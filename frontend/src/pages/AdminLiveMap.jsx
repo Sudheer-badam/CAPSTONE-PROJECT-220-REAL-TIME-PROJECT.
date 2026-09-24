@@ -207,6 +207,11 @@ export default function AdminLiveMap() {
                     }}>
                       {isLiveNow ? '🟢 LIVE NOW' : '🔴 NOT IN LIVE'}
                     </div>
+                    {user.device_os && (
+                      <div style={{ marginTop: '5px', fontSize: '12px', fontWeight: 'bold', color: '#555' }}>
+                        📱 Device: {user.device_os}
+                      </div>
+                    )}
                     <hr style={{ margin: '5px 0', border: 'none', borderTop: '1px solid #ccc' }} />
                     <strong>Lat:</strong> {user.latitude.toFixed(5)}<br/>
                     <strong>Lng:</strong> {user.longitude.toFixed(5)}<br/>
