@@ -303,26 +303,12 @@ export default function Dashboard() {
 
       <div className="dashboard-grid" style={{ marginTop: '20px', marginBottom: '20px' }}>
         <div className="chart-card" style={{ gridColumn: '1 / -1', background: '#fff3cd', border: '1px solid #ffeeba' }}>
-          <h3 style={{ color: '#856404' }}>Admin Controls & Hardware Simulator</h3>
+          <h3 style={{ color: '#856404' }}>Hardware Simulator</h3>
           <p style={{ color: '#856404', fontSize: '14px', marginTop: 0 }}>
-            Use these buttons to load the initial machine learning dataset, or simulate a physical ESP32 device.
+            Use these buttons to simulate a physical ESP32 device sending data to the backend.
             Because you are using Firebase Realtime Listeners, the dashboard above will update INSTANTLY!
           </p>
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            <button 
-              onClick={async () => {
-                try {
-                  const { runAnalysis } = await import('../services/api');
-                  alert("Started processing dataset. This may take a moment. The dashboard will update automatically when done!");
-                  await runAnalysis();
-                } catch (e) {
-                  alert("Failed to run analysis. Make sure the backend is running at http://localhost:8000!");
-                }
-              }}
-              style={{ flex: '1 1 200px', padding: '10px 20px', background: '#28a745', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
-            >
-              📊 Load Sample ML Dataset
-            </button>
             <button 
               onClick={async () => {
                 if (!cachedLocation) return alert("Waiting for GPS lock... please ensure location access is allowed.");
