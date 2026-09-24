@@ -13,6 +13,8 @@
     "axios": "^1.20.0",
     "firebase": "^12.19.0",
     "leaflet": "^1.9.4",
+    "leaflet-control-geocoder": "^4.0.0",
+    "leaflet-routing-machine": "^3.2.12",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-google-recaptcha": "^3.1.0",

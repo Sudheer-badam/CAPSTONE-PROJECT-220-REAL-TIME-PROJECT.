@@ -1,8 +1,14 @@
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Circle, LayersControl, useMapEvents, ScaleControl } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle, LayersControl, useMapEvents, ScaleControl, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { collection, onSnapshot, addDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
+
+// Routing Machine and Geocoder
+import 'leaflet-routing-machine';
+import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
+import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
+import 'leaflet-control-geocoder/dist/Control.Geocoder.js';
 
 // Fix Leaflet marker icon issue in React
 import L from 'leaflet';
@@ -83,11 +89,46 @@ function MapInteractionHandler() {
   return null;
 }
 
+function RoutingControl({ isEnabled }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map || !isEnabled) return;
+
+    const routingControl = L.Routing.control({
+      waypoints: [],
+      routeWhileDragging: true,
+      geocoder: L.Control.Geocoder.nominatim(),
+      lineOptions: {
+        styles: [{ color: '#0078FF', weight: 6, opacity: 0.8 }]
+      },
+      show: true,
+      addWaypoints: true,
+      fitSelectedRoutes: true,
+      showAlternatives: true,
+      position: 'topright'
+    }).addTo(map);
+
+    return () => {
+      try {
+        if (map && routingControl) {
+          map.removeControl(routingControl);
+        }
+      } catch (err) {
+        console.error("Error removing routing control:", err);
+      }
+    };
+  }, [map, isEnabled]);
+
+  return null;
+}
+
 export default function MapPage() {
   const [riskZones, setRiskZones] = useState([]);
   const [locations, setLocations] = useState([]);
   const [interactions, setInteractions] = useState([]);
   const [iotEvents, setIotEvents] = useState([]);
+  const [routingEnabled, setRoutingEnabled] = useState(false);
 
   useEffect(() => {
     // 1. Listen to Risk Zones
@@ -162,14 +203,32 @@ export default function MapPage() {
   return (
     <div>
       <div className="chart-card" style={{marginBottom: '20px'}}>
-        <h3>Advanced Interactive Risk Map</h3>
-        <p style={{fontSize: '14px', color: '#666', marginTop: '0'}}>
-          Click anywhere on the map to log an interaction. It will request your actual device location and log your IP securely to Firebase.
-        </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h3>Advanced Interactive Risk Map</h3>
+            <p style={{fontSize: '14px', color: '#666', marginTop: '0'}}>
+              Click anywhere on the map to log an interaction. Use the <strong>Directions</strong> feature to plan a route safely.
+            </p>
+          </div>
+          <button 
+            onClick={() => setRoutingEnabled(!routingEnabled)}
+            style={{
+              padding: '10px 20px', 
+              backgroundColor: routingEnabled ? '#dc3545' : '#007bff', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontWeight: 'bold'
+            }}
+          >
+            {routingEnabled ? 'Close Directions' : 'Get Directions'}
+          </button>
+        </div>
         
         <MapContainer center={defaultCenter} zoom={13} className="leaflet-container">
           <ScaleControl position="bottomright" />
-          <LayersControl position="topright">
+          <LayersControl position="topleft">
             
             <LayersControl.BaseLayer checked name="OpenStreetMap (Street)">
               <TileLayer
@@ -196,6 +255,9 @@ export default function MapPage() {
 
           {/* Handler for clicking on the map */}
           <MapInteractionHandler />
+
+          {/* Routing Machine Control */}
+          <RoutingControl isEnabled={routingEnabled} />
           
           {/* Individual Report Markers */}
           {locations.map(loc => (
