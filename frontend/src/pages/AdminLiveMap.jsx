@@ -49,8 +49,8 @@ export default function AdminLiveMap() {
         const lastSeen = new Date(data.last_updated);
         const diffMinutes = (now - lastSeen) / 1000 / 60;
         
-        if (data.is_sharing && diffMinutes < 10) {
-          users.push({ id: doc.id, ...data });
+        if (data.latitude && data.longitude) {
+          users.push({ id: doc.id, ...data, isLiveNow: diffMinutes < 1 && data.is_sharing });
         }
       });
       setLiveUsers(users);
@@ -181,11 +181,23 @@ export default function AdminLiveMap() {
             </LayersControl>
             
             {liveUsers.map(user => (
-              <Marker key={user.id} position={[user.latitude, user.longitude]} icon={LiveUserIcon}>
+              <Marker key={user.id} position={[user.latitude, user.longitude]} icon={user.isLiveNow ? LiveUserIcon : UserIcon}>
                 <Popup>
                   <div style={{ textAlign: 'center' }}>
                     <strong style={{ fontSize: '16px' }}>{user.user_name}</strong><br/>
                     <span style={{ fontSize: '12px', color: '#666' }}>{user.email}</span><br/>
+                    <div style={{ 
+                      marginTop: '5px', 
+                      padding: '4px 8px', 
+                      borderRadius: '12px', 
+                      display: 'inline-block',
+                      background: user.isLiveNow ? '#d4edda' : '#f8d7da',
+                      color: user.isLiveNow ? '#155724' : '#721c24',
+                      fontWeight: 'bold',
+                      fontSize: '12px'
+                    }}>
+                      {user.isLiveNow ? '🟢 LIVE NOW' : '🔴 NOT IN LIVE'}
+                    </div>
                     <hr style={{ margin: '5px 0', border: 'none', borderTop: '1px solid #ccc' }} />
                     <strong>Lat:</strong> {user.latitude.toFixed(5)}<br/>
                     <strong>Lng:</strong> {user.longitude.toFixed(5)}<br/>
