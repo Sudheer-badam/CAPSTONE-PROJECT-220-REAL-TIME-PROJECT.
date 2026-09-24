@@ -150,6 +150,17 @@ export default function AdminLiveMap() {
     }
   };
 
+  const handleRemoveUser = async (userId) => {
+    if (window.confirm("Are you sure you want to completely remove this user from the live map tracking data?")) {
+      try {
+        await deleteDoc(doc(db, "live_user_locations", userId));
+      } catch (err) {
+        console.error("Error removing user:", err);
+        alert("Failed to remove user data.");
+      }
+    }
+  };
+
   const defaultCenter = [16.50, 80.64];
 
   return (
@@ -217,7 +228,16 @@ export default function AdminLiveMap() {
                     <strong>Lng:</strong> {user.longitude.toFixed(5)}<br/>
                     <span style={{ fontSize: '11px', color: 'green' }}>
                       Last Update: {new Date(user.last_updated).toLocaleTimeString()}
-                    </span>
+                    </span><br/>
+                    <button 
+                      onClick={() => handleRemoveUser(user.id)}
+                      style={{
+                        marginTop: '10px', padding: '6px 12px', background: '#dc3545', color: 'white', 
+                        border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px'
+                      }}
+                    >
+                      Delete User Data
+                    </button>
                   </div>
                 </Popup>
               </Marker>
