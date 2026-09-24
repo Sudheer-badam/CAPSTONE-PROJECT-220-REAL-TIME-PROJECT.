@@ -229,11 +229,22 @@ export default function AdminLiveMap() {
                     <span style={{ fontSize: '11px', color: 'green' }}>
                       Last Update: {new Date(user.last_updated).toLocaleTimeString()}
                     </span><br/>
+                    <a 
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${user.latitude},${user.longitude}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        display: 'block', marginTop: '10px', padding: '6px 12px', background: '#007bff', color: 'white', 
+                        border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', textDecoration: 'none'
+                      }}
+                    >
+                      🗺️ Get Directions
+                    </a>
                     <button 
                       onClick={() => handleRemoveUser(user.id)}
                       style={{
                         marginTop: '10px', padding: '6px 12px', background: '#dc3545', color: 'white', 
-                        border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px'
+                        border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', width: '100%'
                       }}
                     >
                       Delete User Data
@@ -278,11 +289,22 @@ export default function AdminLiveMap() {
                     <strong style={{ fontSize: '16px', color: 'red' }}>🚨 {ev.event_type} ALERT</strong><br/>
                     <strong>Device:</strong> {ev.device_code}<br/>
                     <span style={{ fontSize: '12px', color: 'gray' }}>{new Date(ev.created_at).toLocaleString()}</span><br/>
+                    <a 
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${ev.latitude},${ev.longitude}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        display: 'block', marginTop: '10px', padding: '6px 12px', background: '#007bff', color: 'white', 
+                        border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', textDecoration: 'none'
+                      }}
+                    >
+                      🗺️ Get Directions
+                    </a>
                     <button 
                       onClick={() => handleRemoveSos(ev.id)}
                       style={{
                         marginTop: '10px', padding: '8px 15px', background: '#ffc107', color: 'black', 
-                        border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold'
+                        border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', width: '100%'
                       }}
                     >
                       Remove SOS Alert
