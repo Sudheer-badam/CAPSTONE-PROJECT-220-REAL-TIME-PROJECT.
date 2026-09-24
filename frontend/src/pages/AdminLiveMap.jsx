@@ -40,8 +40,8 @@ export default function AdminLiveMap() {
   const [currentTime, setCurrentTime] = useState(Date.now());
 
   useEffect(() => {
-    // Force re-render every 5 seconds to instantly catch users who leave the site
-    const timer = setInterval(() => setCurrentTime(Date.now()), 5000);
+    // Force re-render every 2 seconds to instantly catch users who leave the site
+    const timer = setInterval(() => setCurrentTime(Date.now()), 2000);
     return () => clearInterval(timer);
   }, []);
 
@@ -185,9 +185,9 @@ export default function AdminLiveMap() {
             
             {liveUsers.map(user => {
               const lastSeen = new Date(user.last_updated);
-              const diffMinutes = (currentTime - lastSeen) / 1000 / 60;
-              // RAPID SPEED LIVE: If they updated in the last 15 seconds (0.25 mins), they are LIVE
-              const isLiveNow = diffMinutes < 0.25 && user.is_sharing;
+              const diffSeconds = (currentTime - lastSeen) / 1000;
+              // RAPID SPEED LIVE: If they updated in the last 5 seconds, they are LIVE
+              const isLiveNow = diffSeconds <= 6 && user.is_sharing;
 
               return (
               <Marker key={user.id} position={[user.latitude, user.longitude]} icon={isLiveNow ? LiveUserIcon : UserIcon}>

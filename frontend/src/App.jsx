@@ -117,11 +117,11 @@ function App() {
 
     let intervalId;
     if (isSharingLocation && user) {
-      // RAPID SPEED LIVE: Heartbeat every 5 seconds to prove the user is currently on the website
+      // RAPID SPEED LIVE: Heartbeat every 3 seconds to prove the user is currently on the website
       intervalId = setInterval(() => {
         const userRef = doc(db, 'live_user_locations', user.uid);
         setDoc(userRef, { last_updated: new Date().toISOString() }, { merge: true }).catch(console.error);
-      }, 5000);
+      }, 3000);
     }
 
     return () => {
