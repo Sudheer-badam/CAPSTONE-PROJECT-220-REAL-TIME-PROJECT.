@@ -37,6 +37,13 @@ export default function AdminLiveMap() {
   const [riskZones, setRiskZones] = useState([]);
   const [sosEvents, setSosEvents] = useState([]);
   const [interactions, setInteractions] = useState([]);
+  const [currentTime, setCurrentTime] = useState(Date.now());
+
+  useEffect(() => {
+    // Force re-render every 5 seconds to instantly catch users who leave the site
+    const timer = setInterval(() => setCurrentTime(Date.now()), 5000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     // Listen to live_user_locations
@@ -45,12 +52,8 @@ export default function AdminLiveMap() {
       const users = [];
       snapshot.forEach(doc => {
         const data = doc.data();
-        const now = new Date();
-        const lastSeen = new Date(data.last_updated);
-        const diffMinutes = (now - lastSeen) / 1000 / 60;
-        
         if (data.latitude && data.longitude) {
-          users.push({ id: doc.id, ...data, isLiveNow: diffMinutes < 1 && data.is_sharing });
+          users.push({ id: doc.id, ...data });
         }
       });
       setLiveUsers(users);
@@ -180,8 +183,14 @@ export default function AdminLiveMap() {
               </LayersControl.BaseLayer>
             </LayersControl>
             
-            {liveUsers.map(user => (
-              <Marker key={user.id} position={[user.latitude, user.longitude]} icon={user.isLiveNow ? LiveUserIcon : UserIcon}>
+            {liveUsers.map(user => {
+              const lastSeen = new Date(user.last_updated);
+              const diffMinutes = (currentTime - lastSeen) / 1000 / 60;
+              // RAPID SPEED LIVE: If they updated in the last 15 seconds (0.25 mins), they are LIVE
+              const isLiveNow = diffMinutes < 0.25 && user.is_sharing;
+
+              return (
+              <Marker key={user.id} position={[user.latitude, user.longitude]} icon={isLiveNow ? LiveUserIcon : UserIcon}>
                 <Popup>
                   <div style={{ textAlign: 'center' }}>
                     <strong style={{ fontSize: '16px' }}>{user.user_name}</strong><br/>
@@ -191,12 +200,12 @@ export default function AdminLiveMap() {
                       padding: '4px 8px', 
                       borderRadius: '12px', 
                       display: 'inline-block',
-                      background: user.isLiveNow ? '#d4edda' : '#f8d7da',
-                      color: user.isLiveNow ? '#155724' : '#721c24',
+                      background: isLiveNow ? '#d4edda' : '#f8d7da',
+                      color: isLiveNow ? '#155724' : '#721c24',
                       fontWeight: 'bold',
                       fontSize: '12px'
                     }}>
-                      {user.isLiveNow ? '🟢 LIVE NOW' : '🔴 NOT IN LIVE'}
+                      {isLiveNow ? '🟢 LIVE NOW' : '🔴 NOT IN LIVE'}
                     </div>
                     <hr style={{ margin: '5px 0', border: 'none', borderTop: '1px solid #ccc' }} />
                     <strong>Lat:</strong> {user.latitude.toFixed(5)}<br/>
@@ -207,7 +216,8 @@ export default function AdminLiveMap() {
                   </div>
                 </Popup>
               </Marker>
-            ))}
+            );
+          })}
 
             {/* Render Risk Zones for Admin to Manage */}
             {riskZones.map(zone => (

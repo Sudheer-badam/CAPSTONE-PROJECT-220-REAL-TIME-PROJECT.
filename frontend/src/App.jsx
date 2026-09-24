@@ -115,8 +115,18 @@ function App() {
       setLocationError("Location sharing is currently turned OFF.");
     }
 
+    let intervalId;
+    if (isSharingLocation && user) {
+      // RAPID SPEED LIVE: Heartbeat every 5 seconds to prove the user is currently on the website
+      intervalId = setInterval(() => {
+        const userRef = doc(db, 'live_user_locations', user.uid);
+        setDoc(userRef, { last_updated: new Date().toISOString() }, { merge: true }).catch(console.error);
+      }, 5000);
+    }
+
     return () => {
       if (watchId) navigator.geolocation.clearWatch(watchId);
+      if (intervalId) clearInterval(intervalId);
     };
   }, [isSharingLocation, user]);
 
