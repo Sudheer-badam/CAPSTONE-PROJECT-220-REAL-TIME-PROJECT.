@@ -8,7 +8,7 @@ import { db } from '../services/firebase';
 import 'leaflet-routing-machine';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
-import 'leaflet-control-geocoder/dist/Control.Geocoder.js';
+import 'leaflet-control-geocoder';
 
 // Fix Leaflet marker icon issue in React
 import L from 'leaflet';
