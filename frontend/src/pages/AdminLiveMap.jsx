@@ -224,8 +224,7 @@ export default function AdminLiveMap() {
                     <hr style={{ margin: '5px 0', border: 'none', borderTop: '1px solid #ccc' }} />
                     <strong>Lat:</strong> {user.latitude.toFixed(5)}<br/>
                     <strong>Lng:</strong> {user.longitude.toFixed(5)}<br/>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', marginTop: '5px' }}>
-                      <span style={{ color: '#0056b3', fontWeight: 'bold' }}>🔢 IMEI: {user.device_imei || 'N/A'}</span>
+                    <div style={{ textAlign: 'center', fontSize: '11px', marginTop: '5px' }}>
                       <span style={{ color: 'green' }}>Last Update: {new Date(user.last_updated).toLocaleString()}</span>
                     </div>
                     <a 

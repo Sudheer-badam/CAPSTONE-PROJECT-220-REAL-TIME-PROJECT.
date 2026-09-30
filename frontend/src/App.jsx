@@ -36,16 +36,6 @@ const getDeviceOS = () => {
   return "Unknown Device";
 };
 
-const getDeviceIMEI = () => {
-  let imei = localStorage.getItem('device_imei');
-  if (!imei) {
-    // Generate a random 15-digit number to simulate IMEI
-    imei = Math.floor(100000000000000 + Math.random() * 900000000000000).toString();
-    localStorage.setItem('device_imei', imei);
-  }
-  return imei;
-};
-
 function ThemeSwitcher() {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -107,7 +97,6 @@ function App() {
                 longitude: lon,
                 is_sharing: true,
                 device_os: getDeviceOS(),
-                device_imei: getDeviceIMEI(),
                 last_updated: new Date().toISOString()
               }, { merge: true });
             } catch (err) {
@@ -144,8 +133,7 @@ function App() {
         const userRef = doc(db, 'live_user_locations', user.uid);
         setDoc(userRef, { 
           last_updated: new Date().toISOString(),
-          device_os: getDeviceOS(),
-          device_imei: getDeviceIMEI()
+          device_os: getDeviceOS()
         }, { merge: true }).catch(console.error);
       }, 3000);
     }
