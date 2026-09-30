@@ -218,9 +218,11 @@ export default function AdminLiveMap() {
                     }}>
                       {isLiveNow ? '🟢 LIVE NOW' : '🔴 NOT IN LIVE'}
                     </div>
-                    {user.device_os && (
+                    {(user.device_os || user.device_imei) && (
                       <div style={{ marginTop: '5px', fontSize: '12px', fontWeight: 'bold', color: '#555' }}>
-                        📱 Device: {user.device_os}
+                        {user.device_os && <span>📱 Device: {user.device_os}</span>}
+                        {user.device_os && user.device_imei && <br/>}
+                        {user.device_imei && <span style={{ color: '#0056b3' }}>🔢 IMEI: {user.device_imei}</span>}
                       </div>
                     )}
                     <hr style={{ margin: '5px 0', border: 'none', borderTop: '1px solid #ccc' }} />
