@@ -82,10 +82,10 @@ const AdminBroadcastViewer = ({ onClose }) => {
 
     return (
         <div style={{ 
-            position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', 
+            position: 'fixed', top: 0, left: 0, width: '100%', height: '100vh', 
             backgroundColor: '#0A0A0A', padding: '40px 20px', zIndex: 10000, 
             display: 'flex', flexDirection: 'column', alignItems: 'center', 
-            overflowY: 'auto', boxSizing: 'border-box'
+            overflowY: 'auto', overflowX: 'hidden', boxSizing: 'border-box'
         }}>
             <button 
                 onClick={onClose} 
@@ -102,11 +102,11 @@ const AdminBroadcastViewer = ({ onClose }) => {
                 Admin Live Viewer
             </h1>
             
-            <div style={{ display: 'flex', gap: '10px', width: '100%', maxWidth: '600px', marginBottom: '40px' }}>
+            <div style={{ display: 'flex', gap: '10px', width: '100%', maxWidth: '600px', marginBottom: '40px', flexWrap: 'wrap' }}>
                 <select 
                     value={selectedUser} 
                     onChange={(e) => setSelectedUser(e.target.value)}
-                    style={{ flex: 1, padding: '12px', borderRadius: '4px', border: 'none', fontSize: '16px', outline: 'none' }}
+                    style={{ flex: '1 1 250px', padding: '12px', borderRadius: '4px', border: 'none', fontSize: '16px', outline: 'none', maxWidth: '100%' }}
                 >
                     <option value="" disabled>Select a user to watch ({users.length} total)</option>
                     {users.map(u => {
@@ -123,7 +123,7 @@ const AdminBroadcastViewer = ({ onClose }) => {
 
                 <button 
                     onClick={handleWatchStream}
-                    style={{ background: '#2C5282', color: '#fff', border: 'none', borderRadius: '4px', padding: '0 20px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer' }}
+                    style={{ flex: '1 1 auto', background: '#2C5282', color: '#fff', border: 'none', borderRadius: '4px', padding: '12px 20px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', textAlign: 'center' }}
                 >
                     Watch Stream
                 </button>
