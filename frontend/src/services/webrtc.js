@@ -112,19 +112,19 @@ export const startBroadcasting = async (type, localVideoCamEl, localVideoScreenE
     });
 };
 
-export const answerBroadcast = async (uid, remoteVideoCamEl, remoteVideoScreenEl, canvasEl) => {
+export const answerBroadcast = async (uid, remoteVideoCamEl, remoteVideoScreenEl, camCanvasEl, scrCanvasEl) => {
     // Cleanup previous if exists
     if (pc) pc.close();
-    if (activeCanvasAnim) cancelAnimationFrame(activeCanvasAnim);
     
     pc = new RTCPeerConnection(servers);
     
     // Set up audio visualizer context
     let audioContext = null;
-    let analyser = null;
-    let dataArray = null;
+    const activeCanvasAnims = [];
 
-    // Track incoming streams
+    // Track incoming streams by ID
+    const streamMap = {};
+    
     const camStream = new MediaStream();
     const scrStream = new MediaStream();
     
@@ -134,59 +134,62 @@ export const answerBroadcast = async (uid, remoteVideoCamEl, remoteVideoScreenEl
     pc.ontrack = (event) => {
         console.log("Track received:", event.track.kind);
         const stream = event.streams[0];
+        if (!stream) return;
+
+        const streamId = stream.id;
         
-        // We'll roughly map the first video track to camera and second to screen if both exist,
-        // or just add them sequentially based on element availability.
-        // A better approach in WebRTC would be using stream IDs, but this is a simplified version.
-        if (event.track.kind === 'video') {
-            if (!camStream.getVideoTracks().length && remoteVideoCamEl) {
-                camStream.addTrack(event.track);
-            } else if (remoteVideoScreenEl) {
-                scrStream.addTrack(event.track);
+        // Map the first unique stream ID to the Camera stream, and the second to Screen stream
+        if (!streamMap[streamId]) {
+            if (Object.keys(streamMap).length === 0) {
+                streamMap[streamId] = camStream;
+            } else {
+                streamMap[streamId] = scrStream;
             }
         }
+        
+        const targetStream = streamMap[streamId];
+        targetStream.addTrack(event.track);
+
         if (event.track.kind === 'audio') {
-            camStream.addTrack(event.track);
+            const targetCanvas = (targetStream === camStream) ? camCanvasEl : scrCanvasEl;
+            const color = (targetStream === camStream) ? 'rgba(212, 175, 55, 0.8)' : 'rgba(49, 130, 206, 0.8)';
             
-            // Audio visualizer logic if canvas provided
-            if (canvasEl) {
+            if (targetCanvas) {
                 try {
                     if (!audioContext) {
                         const AudioContext = window.AudioContext || window.webkitAudioContext;
                         audioContext = new AudioContext();
-                        analyser = audioContext.createAnalyser();
-                        analyser.fftSize = 256;
-                        
-                        // We create a media stream source from the incoming event.streams[0]
-                        const source = audioContext.createMediaStreamSource(stream);
-                        source.connect(analyser);
-                        
-                        const bufferLength = analyser.frequencyBinCount;
-                        dataArray = new Uint8Array(bufferLength);
-                        const ctx = canvasEl.getContext('2d');
-                        
-                        const drawVisualizer = () => {
-                            activeCanvasAnim = requestAnimationFrame(drawVisualizer);
-                            analyser.getByteFrequencyData(dataArray);
-                            
-                            // Draw background
-                            ctx.fillStyle = 'rgb(20, 20, 20)';
-                            ctx.fillRect(0, 0, canvasEl.width, canvasEl.height);
-                            
-                            // Draw bars
-                            const barWidth = (canvasEl.width / bufferLength) * 2.5;
-                            let barHeight;
-                            let x = 0;
-                            
-                            for (let i = 0; i < bufferLength; i++) {
-                                barHeight = dataArray[i] / 2;
-                                ctx.fillStyle = 'rgb(' + (barHeight + 100) + ', 50, 250)';
-                                ctx.fillRect(x, canvasEl.height - barHeight, barWidth, barHeight);
-                                x += barWidth + 1;
-                            }
-                        };
-                        drawVisualizer();
                     }
+                    const analyser = audioContext.createAnalyser();
+                    analyser.fftSize = 64; 
+                    
+                    const source = audioContext.createMediaStreamSource(new MediaStream([event.track]));
+                    source.connect(analyser);
+                    
+                    const bufferLength = analyser.frequencyBinCount;
+                    const dataArray = new Uint8Array(bufferLength);
+                    const ctx = targetCanvas.getContext('2d');
+                    
+                    const drawVisualizer = () => {
+                        const animId = requestAnimationFrame(drawVisualizer);
+                        activeCanvasAnims.push(animId);
+                        
+                        analyser.getByteFrequencyData(dataArray);
+                        ctx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
+                        
+                        const barWidth = targetCanvas.width / bufferLength;
+                        let x = 0;
+                        
+                        for (let i = 0; i < bufferLength; i++) {
+                            const percent = dataArray[i] / 255;
+                            const barHeight = percent * targetCanvas.height;
+                            
+                            ctx.fillStyle = color;
+                            ctx.fillRect(x, targetCanvas.height - barHeight, barWidth - 1, barHeight);
+                            x += barWidth;
+                        }
+                    };
+                    drawVisualizer();
                 } catch (e) {
                     console.error("Audio visualizer error", e);
                 }

@@ -334,9 +334,10 @@ function App() {
         </nav>
       </header>
 
-      {isBroadcastModalOpen && (
-        <BroadcastLive onClose={() => setIsBroadcastModalOpen(false)} />
-      )}
+      <BroadcastLive 
+        isOpen={isBroadcastModalOpen} 
+        onClose={() => setIsBroadcastModalOpen(false)} 
+      />
 
       {isAdminViewModalOpen && (
         <AdminBroadcastViewer onClose={() => setIsAdminViewModalOpen(false)} />

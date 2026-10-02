@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { startBroadcasting } from '../services/webrtc';
 import { auth } from '../services/firebase';
 
-const BroadcastLive = ({ onClose }) => {
+const BroadcastLive = ({ isOpen, onClose }) => {
     const camVideoRef = useRef(null);
     const screenVideoRef = useRef(null);
     const [isBroadcasting, setIsBroadcasting] = useState(false);
@@ -22,7 +22,7 @@ const BroadcastLive = ({ onClose }) => {
     };
 
     return (
-        <div style={overlayStyle}>
+        <div style={{ ...overlayStyle, display: isOpen ? 'flex' : 'none' }}>
             <div style={{
                 ...modalStyle,
                 maxWidth: (isBroadcasting && broadcastType === 'both') ? '800px' : '400px',

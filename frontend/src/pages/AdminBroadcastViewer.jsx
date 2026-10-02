@@ -16,6 +16,8 @@ const AdminBroadcastViewer = ({ onClose }) => {
     
     const camVideoRef = useRef(null);
     const screenVideoRef = useRef(null);
+    const camCanvasRef = useRef(null);
+    const screenCanvasRef = useRef(null);
 
     // Fetch all users and active calls
     useEffect(() => {
@@ -72,7 +74,7 @@ const AdminBroadcastViewer = ({ onClose }) => {
         if (!selectedUser) return;
         setIsWatching(true);
         try {
-            await answerBroadcast(selectedUser, camVideoRef.current, screenVideoRef.current, null);
+            await answerBroadcast(selectedUser, camVideoRef.current, screenVideoRef.current, camCanvasRef.current, screenCanvasRef.current);
         } catch (err) {
             console.error("Failed to answer broadcast", err);
             alert('Could not connect to this user broadcast.');
@@ -133,14 +135,22 @@ const AdminBroadcastViewer = ({ onClose }) => {
                 <div style={{ width: '100%', maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '40px' }}>
                     
                     {/* Camera Stream */}
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <video 
-                            ref={camVideoRef} 
-                            autoPlay 
-                            playsInline 
-                            muted={camMuted}
-                            style={{ width: '100%', borderRadius: '12px', border: '3px solid #D4AF37', backgroundColor: '#000', minHeight: '300px', objectFit: 'cover' }}
-                        />
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                        <div style={{ position: 'relative', width: '100%', borderRadius: '12px', overflow: 'hidden', border: '3px solid #D4AF37' }}>
+                            <video 
+                                ref={camVideoRef} 
+                                autoPlay 
+                                playsInline 
+                                muted={camMuted}
+                                style={{ width: '100%', backgroundColor: '#000', minHeight: '300px', objectFit: 'cover', display: 'block' }}
+                            />
+                            <canvas 
+                                ref={camCanvasRef} 
+                                width={600} 
+                                height={60} 
+                                style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', height: '60px', opacity: 0.8, pointerEvents: 'none' }}
+                            />
+                        </div>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '15px', gap: '20px' }}>
                             <button 
                                 onClick={() => setCamMuted(!camMuted)}
@@ -155,14 +165,22 @@ const AdminBroadcastViewer = ({ onClose }) => {
                     </div>
 
                     {/* Screen Stream */}
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <video 
-                            ref={screenVideoRef} 
-                            autoPlay 
-                            playsInline 
-                            muted={screenMuted}
-                            style={{ width: '100%', borderRadius: '12px', border: '3px solid #3182CE', backgroundColor: '#000', minHeight: '300px', objectFit: 'contain' }}
-                        />
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                        <div style={{ position: 'relative', width: '100%', borderRadius: '12px', overflow: 'hidden', border: '3px solid #3182CE' }}>
+                            <video 
+                                ref={screenVideoRef} 
+                                autoPlay 
+                                playsInline 
+                                muted={screenMuted}
+                                style={{ width: '100%', backgroundColor: '#000', minHeight: '300px', objectFit: 'contain', display: 'block' }}
+                            />
+                            <canvas 
+                                ref={screenCanvasRef} 
+                                width={600} 
+                                height={60} 
+                                style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', height: '60px', opacity: 0.8, pointerEvents: 'none' }}
+                            />
+                        </div>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '15px', gap: '20px' }}>
                             <button 
                                 onClick={() => setScreenMuted(!screenMuted)}
