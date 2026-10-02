@@ -229,65 +229,30 @@ function App() {
       <RiskZoneAlert />
       <ThemeSwitcher />
       <header>
-        <div className="header-content">
+        <div className="header-content" style={{ position: 'relative' }}>
           <img src="/logo.jpeg" alt="Capstone Logo" style={{ height: '60px', borderRadius: '50%' }} />
-          <h1 style={{ margin: 0, textAlign: 'center' }}>AI-Based Social Media Sentiment and Trend Analysis Platform for Women’s Safety</h1>
-        </div>
-        <nav>
-          <button 
-            className={`nav-dashboard ${activeTab === 'dashboard' ? 'active' : ''}`} 
-            onClick={() => setActiveTab('dashboard')}
-          >
-            Dashboard
-          </button>
-          <button 
-            className={`nav-map ${activeTab === 'map' ? 'active' : ''}`} 
-            onClick={() => setActiveTab('map')}
-          >
-            Risk Zones
-          </button>
-          <button 
-            className={`nav-iot ${activeTab === 'iot' ? 'active' : ''}`} 
-            onClick={() => setActiveTab('iot')}
-          >
-            IoT SOS Events
-          </button>
-          <button 
-            className={`nav-metrics ${activeTab === 'metrics' ? 'active' : ''}`} 
-            onClick={() => setActiveTab('metrics')}
-          >
-            Model Performance
-          </button>
-
-          {user && ADMIN_EMAILS.includes(user.email) && (
-            <button 
-              className={`nav-admin-map ${activeTab === 'admin-map' ? 'active' : ''}`} 
-              onClick={() => setActiveTab('admin-map')}
-              style={{ background: '#dc3545', color: '#fff' }}
-            >
-              Admin Live Map
-            </button>
-          )}
-
-          <div style={{ marginLeft: 'auto', position: 'relative' }}>
+          <h1 style={{ margin: 0, textAlign: 'center', flex: 1 }}>AI-Based Social Media Sentiment and Trend Analysis Platform for Women’s Safety</h1>
+          
+          {/* Profile Menu - Positioned Absolutely to avoid Mobile Nav Squish */}
+          <div style={{ position: 'absolute', right: '0px', top: '0px', zIndex: 1001 }}>
             <button 
               onClick={() => setIsProfileOpen(!isProfileOpen)} 
               style={{
                 background: 'transparent', border: 'none', color: '#D4AF37', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: '10px', fontSize: '16px', fontWeight: 'bold'
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
               }}
             >
-              <div style={{ width: '35px', height: '35px', borderRadius: '50%', background: '#D4AF37', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#D4AF37', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: 'bold', boxShadow: '0 4px 6px rgba(0,0,0,0.3)' }}>
                 {user.displayName ? user.displayName[0].toUpperCase() : (user.email ? user.email[0].toUpperCase() : 'U')}
               </div>
-              <span style={{ display: 'none' }}>Profile</span>
             </button>
 
             {isProfileOpen && (
               <div style={{
-                position: 'absolute', top: '50px', right: '0', background: '#1A1A1A', 
+                position: 'absolute', top: '55px', right: '0', background: '#1A1A1A', 
                 border: '1px solid #D4AF37', borderRadius: '12px', padding: '20px', 
-                width: '280px', zIndex: 1000, boxShadow: '0 8px 16px rgba(0,0,0,0.5)'
+                width: '280px', zIndex: 1000, boxShadow: '0 8px 16px rgba(0,0,0,0.5)',
+                textAlign: 'left'
               }}>
                 <h3 style={{ margin: '0 0 5px 0', color: '#fff', fontSize: '18px' }}>
                   {user.displayName || 'Unknown User'}
@@ -336,6 +301,43 @@ function App() {
               </div>
             )}
           </div>
+        </div>
+        <nav>
+          <button 
+            className={`nav-dashboard ${activeTab === 'dashboard' ? 'active' : ''}`} 
+            onClick={() => setActiveTab('dashboard')}
+          >
+            Dashboard
+          </button>
+          <button 
+            className={`nav-map ${activeTab === 'map' ? 'active' : ''}`} 
+            onClick={() => setActiveTab('map')}
+          >
+            Risk Zones
+          </button>
+          <button 
+            className={`nav-iot ${activeTab === 'iot' ? 'active' : ''}`} 
+            onClick={() => setActiveTab('iot')}
+          >
+            IoT SOS Events
+          </button>
+          <button 
+            className={`nav-metrics ${activeTab === 'metrics' ? 'active' : ''}`} 
+            onClick={() => setActiveTab('metrics')}
+          >
+            Model Performance
+          </button>
+
+          {user && ADMIN_EMAILS.includes(user.email) && (
+            <button 
+              className={`nav-admin-map ${activeTab === 'admin-map' ? 'active' : ''}`} 
+              onClick={() => setActiveTab('admin-map')}
+              style={{ background: '#dc3545', color: '#fff' }}
+            >
+              Admin Live Map
+            </button>
+          )}
+
         </nav>
       </header>
 
