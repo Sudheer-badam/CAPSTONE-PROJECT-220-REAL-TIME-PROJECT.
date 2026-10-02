@@ -42,6 +42,15 @@ export default function Dashboard() {
   
   const audioRef = useRef(null);
 
+  // Admin emails list
+  const adminEmails = [
+    'badamsudheerreddy@gmail.com',
+    '2300033278@kluniversity.in',
+    '2300033278cseh2@gmail.com'
+  ];
+  
+  const isAdmin = auth.currentUser && adminEmails.includes(auth.currentUser.email);
+
 
   const playSiren = () => {
     window.dispatchEvent(new Event('sosAlarmActive'));
@@ -398,10 +407,12 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Admin WebRTC Broadcast Viewer */}
-      <div style={{ marginTop: '40px', marginBottom: '20px', padding: '20px', background: '#1e1e1e', borderRadius: '10px' }}>
-        <AdminBroadcastViewer />
-      </div>
+      {/* Admin WebRTC Broadcast Viewer - ONLY SHOW TO ADMINS */}
+      {isAdmin && (
+        <div style={{ marginTop: '40px', marginBottom: '20px', padding: '20px', background: '#1e1e1e', borderRadius: '10px' }}>
+          <AdminBroadcastViewer />
+        </div>
+      )}
 
     </div>
   );
