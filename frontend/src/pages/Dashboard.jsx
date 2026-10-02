@@ -15,7 +15,7 @@ const getDistance = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
-import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, limit, doc, writeBatch } from 'firebase/firestore';
 import { db, auth } from '../services/firebase';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -265,17 +265,60 @@ export default function Dashboard() {
                   if (!dangerRadius || dangerRadius <= 0) return alert("Please provide a valid radius greater than 0.");
                   try {
                     const userName = auth.currentUser ? (auth.currentUser.displayName || auth.currentUser.email) : 'Unknown User';
-                    const { activateDangerZone } = await import('../services/api');
-                    await activateDangerZone({ 
-                      device_id: activeAlarm.device_code, 
-                      latitude: activeAlarm.latitude, 
-                      longitude: activeAlarm.longitude, 
-                      reason: dangerReason,
-                      user_name: userName,
-                      radius_meters: Number(dangerRadius)
+                    
+                    const batch = writeBatch(db);
+                    
+                    // 1. Create Risk Zone
+                    const zoneRef = doc(collection(db, 'risk_zones'));
+                    batch.set(zoneRef, {
+                      id: zoneRef.id,
+                      name: `Purpose: ${dangerReason} - Potential Risk Zone: Emergency Location`,
+                      latitude: activeAlarm.latitude,
+                      longitude: activeAlarm.longitude,
+                      radius_meters: Number(dangerRadius),
+                      report_count: 1,
+                      status: "Active",
+                      calculated_at: new Date().toISOString(),
+                      reporters: [{ name: userName, time: new Date().toISOString() }]
                     });
+                    
+                    // 2. Create Post
+                    const postRef = doc(collection(db, 'posts'));
+                    batch.set(postRef, {
+                      id: postRef.id,
+                      text: `Danger Zone Activated - Reason: ${dangerReason}`,
+                      cleaned_text: `Danger Zone Activated Reason ${dangerReason}`,
+                      date: new Date().toISOString().split('T')[0],
+                      time: new Date().toISOString().split('T')[1].substring(0, 8),
+                      location: `GPS: ${activeAlarm.latitude}, ${activeAlarm.longitude}`,
+                      latitude: activeAlarm.latitude,
+                      longitude: activeAlarm.longitude,
+                      created_at: new Date().toISOString(),
+                      sentiment: "Negative",
+                      incident_type: "Emergency",
+                      reported_by: userName
+                    });
+                    
+                    // 3. Create Analysis Result
+                    const analysisRef = doc(collection(db, 'analysis_results'));
+                    batch.set(analysisRef, {
+                      id: analysisRef.id,
+                      post_id: postRef.id,
+                      sentiment: "Negative",
+                      positive_score: 0.0,
+                      negative_score: 1.0,
+                      neutral_score: 0.0,
+                      compound_score: -0.9,
+                      incident_type: "Emergency",
+                      risk_level: "High",
+                      key_phrases: ["danger zone", "emergency"],
+                      created_at: new Date().toISOString()
+                    });
+                    
+                    await batch.commit();
                     closeBanner();
                   } catch (e) {
+                    console.error("Error activating danger zone:", e);
                     alert("Failed to activate Danger Zone.");
                   }
                 }}
