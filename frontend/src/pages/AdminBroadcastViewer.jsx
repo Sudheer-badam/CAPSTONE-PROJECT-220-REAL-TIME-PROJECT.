@@ -132,10 +132,10 @@ const AdminBroadcastViewer = ({ onClose }) => {
             </div>
 
             {isWatching && (
-                <div style={{ width: '100%', maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '40px' }}>
+                <div style={{ width: '100%', maxWidth: '1200px', display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '40px', justifyContent: 'center' }}>
                     
                     {/* Camera Stream */}
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '1 1 400px', minWidth: '300px' }}>
                         <div style={{ position: 'relative', width: '100%', borderRadius: '12px', overflow: 'hidden', border: '3px solid #D4AF37' }}>
                             <video 
                                 ref={camVideoRef} 
@@ -165,7 +165,7 @@ const AdminBroadcastViewer = ({ onClose }) => {
                     </div>
 
                     {/* Screen Stream */}
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '1 1 400px', minWidth: '300px' }}>
                         <div style={{ position: 'relative', width: '100%', borderRadius: '12px', overflow: 'hidden', border: '3px solid #3182CE' }}>
                             <video 
                                 ref={screenVideoRef} 
