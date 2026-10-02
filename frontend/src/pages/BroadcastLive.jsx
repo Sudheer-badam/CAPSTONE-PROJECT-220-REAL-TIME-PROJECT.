@@ -58,35 +58,30 @@ const BroadcastLive = ({ onClose }) => {
                         </button>
                     </div>
                 ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
-                        <h3 style={{ color: '#4CAF50', textAlign: 'center' }}>Broadcasting ({broadcastType})...</h3>
-                        
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            {(broadcastType === 'camera' || broadcastType === 'both') && (
-                                <div style={{ width: '100%' }}>
-                                    <video 
-                                        ref={camVideoRef} 
-                                        autoPlay 
-                                        playsInline 
-                                        muted 
-                                        style={videoStyle}
-                                    />
-                                </div>
-                            )}
-                            {(broadcastType === 'screen' || broadcastType === 'both') && (
-                                <div style={{ width: '100%' }}>
-                                    <video 
-                                        ref={screenVideoRef} 
-                                        autoPlay 
-                                        playsInline 
-                                        muted 
-                                        style={videoStyle}
-                                    />
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                    <h3 style={{ color: '#4CAF50', textAlign: 'center' }}>Broadcasting ({broadcastType})...</h3>
                 )}
+
+                <div style={{ display: isBroadcasting ? 'flex' : 'none', flexDirection: 'column', gap: '20px', width: '100%', marginTop: '20px' }}>
+                    <div style={{ display: (broadcastType === 'camera' || broadcastType === 'both') ? 'block' : 'none', width: '100%' }}>
+                        <video 
+                            ref={camVideoRef} 
+                            autoPlay 
+                            playsInline 
+                            muted 
+                            style={videoStyle}
+                        />
+                    </div>
+                    
+                    <div style={{ display: (broadcastType === 'screen' || broadcastType === 'both') ? 'block' : 'none', width: '100%' }}>
+                        <video 
+                            ref={screenVideoRef} 
+                            autoPlay 
+                            playsInline 
+                            muted 
+                            style={videoStyle}
+                        />
+                    </div>
+                </div>
             </div>
         </div>
     );
