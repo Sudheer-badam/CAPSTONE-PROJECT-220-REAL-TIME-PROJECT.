@@ -9,6 +9,7 @@ import IoTEvents from './pages/IoTEvents'
 import ModelMetrics from './pages/ModelMetrics'
 import AdminLiveMap from './pages/AdminLiveMap'
 import RiskZoneAlert from './components/RiskZoneAlert'
+import BroadcastLive from './pages/BroadcastLive'
 import './index.css'
 
 const THEMES = [
@@ -69,6 +70,8 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [isSharingLocation, setIsSharingLocation] = useState(() => localStorage.getItem('isSharingLocation') === 'true');
   const [locationError, setLocationError] = useState(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -264,15 +267,65 @@ function App() {
             </button>
           )}
 
-          <div style={{ marginLeft: 'auto' }}>
-            {/* Location sharing is now permanently active after initial grant */}
-          </div>
+          <div style={{ marginLeft: 'auto', position: 'relative' }}>
+            <button 
+              onClick={() => setIsProfileOpen(!isProfileOpen)} 
+              style={{
+                background: 'transparent', border: 'none', color: '#D4AF37', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: '10px', fontSize: '16px', fontWeight: 'bold'
+              }}
+            >
+              <div style={{ width: '35px', height: '35px', borderRadius: '50%', background: '#D4AF37', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+                {user.displayName ? user.displayName[0].toUpperCase() : (user.email ? user.email[0].toUpperCase() : 'U')}
+              </div>
+              <span style={{ display: 'none' }}>Profile</span>
+            </button>
 
-          <button className="logout-btn" onClick={handleSignOut}>
-            Sign Out
-          </button>
+            {isProfileOpen && (
+              <div style={{
+                position: 'absolute', top: '50px', right: '0', background: '#1A1A1A', 
+                border: '1px solid #D4AF37', borderRadius: '12px', padding: '20px', 
+                width: '280px', zIndex: 1000, boxShadow: '0 8px 16px rgba(0,0,0,0.5)'
+              }}>
+                <h3 style={{ margin: '0 0 5px 0', color: '#fff', fontSize: '18px' }}>
+                  {user.displayName || 'Unknown User'}
+                </h3>
+                <p style={{ margin: '0 0 20px 0', color: '#888', fontSize: '14px', wordBreak: 'break-all' }}>
+                  {user.email}
+                </p>
+
+                <button 
+                  onClick={() => { setIsBroadcastModalOpen(true); setIsProfileOpen(false); }}
+                  style={{
+                    width: '100%', padding: '12px', background: '#D4AF37', color: '#000',
+                    border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                    marginBottom: '10px', fontSize: '16px'
+                  }}
+                >
+                  <span style={{ fontSize: '20px' }}>📹</span> Broadcast Live
+                </button>
+
+                <button 
+                  onClick={handleSignOut}
+                  style={{
+                    width: '100%', padding: '12px', background: '#D32F2F', color: '#fff',
+                    border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                    fontSize: '16px'
+                  }}
+                >
+                  <span style={{ fontSize: '20px' }}>🚪</span> Logout
+                </button>
+              </div>
+            )}
+          </div>
         </nav>
       </header>
+
+      {isBroadcastModalOpen && (
+        <BroadcastLive onClose={() => setIsBroadcastModalOpen(false)} />
+      )}
 
       <main>
         {activeTab === 'dashboard' && <Dashboard />}

