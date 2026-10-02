@@ -113,11 +113,11 @@ const AdminBroadcastViewer = ({ onClose }) => {
                     <option value="" disabled>Select a user to watch ({users.length} total)</option>
                     {users.map(u => {
                         const isLive = activeCalls.has(u.uid);
-                        const statusText = isLive ? '[Live]' : '[Offline]';
+                        const statusDot = isLive ? '🟢' : '🔴';
                         const emailDisplay = u.email ? `(${u.email})` : '(No Email Provided)';
                         return (
                             <option key={u.uid} value={u.uid}>
-                                {statusText} {u.user_name} {emailDisplay} - {u.device_os || 'Unknown'}
+                                {statusDot} {u.user_name} {emailDisplay} - {u.device_os || 'Unknown'}
                             </option>
                         );
                     })}
