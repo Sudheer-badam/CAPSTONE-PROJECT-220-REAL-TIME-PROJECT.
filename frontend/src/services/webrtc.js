@@ -36,44 +36,16 @@ export const startBroadcasting = async (type, localVideoCamEl, localVideoScreenE
     
     pc = new RTCPeerConnection(servers);
     
-    // Get media streams based on type
-    try {
-        if (type === 'camera' || type === 'both') {
-            try {
-                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            } catch (err) {
-                console.warn("Audio failed, falling back to video only", err);
-                localStream = await navigator.mediaDevices.getUserMedia({ video: true });
-            }
-            if (localVideoCamEl) {
-                localVideoCamEl.srcObject = localStream;
-            }
-            localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
-        }
-        
-        if (type === 'screen' || type === 'both') {
-            screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-            if (localVideoScreenEl) {
-                localVideoScreenEl.srcObject = screenStream;
-            }
-            screenStream.getTracks().forEach((track) => pc.addTrack(track, screenStream));
-        }
-    } catch (error) {
-        console.error("Error getting media streams:", error);
-        throw error;
-    }
-    
     // Reference to Firestore document
     const callDoc = doc(db, 'webrtc_calls', uid);
     const offerCandidates = collection(callDoc, 'offerCandidates');
     const answerCandidates = collection(callDoc, 'answerCandidates');
-    
-    // Listen for local ICE candidates
+
+    // Attach listeners BEFORE adding media tracks!
     pc.onicecandidate = (event) => {
         event.candidate && addDoc(offerCandidates, event.candidate.toJSON());
     };
     
-    // Reconnection/state logic
     pc.oniceconnectionstatechange = () => {
         if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed') {
             console.warn('Network changed, attempting ICE restart...');
@@ -102,6 +74,33 @@ export const startBroadcasting = async (type, localVideoCamEl, localVideoScreenE
             console.error("Renegotiation failed:", err);
         }
     };
+    
+    // Get media streams based on type
+    try {
+        if (type === 'camera' || type === 'both') {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            } catch (err) {
+                console.warn("Audio failed, falling back to video only", err);
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true });
+            }
+            if (localVideoCamEl) {
+                localVideoCamEl.srcObject = localStream;
+            }
+            localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
+        }
+        
+        if (type === 'screen' || type === 'both') {
+            screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+            if (localVideoScreenEl) {
+                localVideoScreenEl.srcObject = screenStream;
+            }
+            screenStream.getTracks().forEach((track) => pc.addTrack(track, screenStream));
+        }
+    } catch (error) {
+        console.error("Error getting media streams:", error);
+        throw error;
+    }
     
     // Listen for Answer
     onSnapshot(callDoc, (snapshot) => {
