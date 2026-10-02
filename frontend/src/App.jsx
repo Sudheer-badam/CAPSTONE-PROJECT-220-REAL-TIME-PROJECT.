@@ -11,6 +11,7 @@ import AdminLiveMap from './pages/AdminLiveMap'
 import RiskZoneAlert from './components/RiskZoneAlert'
 import BroadcastLive from './pages/BroadcastLive'
 import AdminBroadcastViewer from './pages/AdminBroadcastViewer'
+import VisitorCounter from './components/VisitorCounter'
 import './index.css'
 
 const THEMES = [
@@ -362,6 +363,8 @@ function App() {
         {activeTab === 'metrics' && <ModelMetrics />}
         {activeTab === 'admin-map' && <AdminLiveMap />}
       </main>
+      
+      {user && <VisitorCounter />}
     </div>
   )
 }
