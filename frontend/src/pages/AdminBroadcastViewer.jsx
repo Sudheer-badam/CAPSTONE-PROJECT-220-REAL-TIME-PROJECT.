@@ -3,7 +3,7 @@ import { collection, onSnapshot, getDocs } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { answerBroadcast } from '../services/webrtc';
 
-const AdminBroadcastViewer = () => {
+const AdminBroadcastViewer = ({ onClose }) => {
     const [users, setUsers] = useState([]);
     const [activeCalls, setActiveCalls] = useState(new Set());
     const [selectedUser, setSelectedUser] = useState("");
@@ -81,9 +81,24 @@ const AdminBroadcastViewer = () => {
     };
 
     return (
-        <div style={{ backgroundColor: '#0A0A0A', padding: '40px 20px', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ 
+            position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', 
+            backgroundColor: '#0A0A0A', padding: '40px 20px', zIndex: 10000, 
+            display: 'flex', flexDirection: 'column', alignItems: 'center', 
+            overflowY: 'auto', boxSizing: 'border-box'
+        }}>
+            <button 
+                onClick={onClose} 
+                style={{
+                    position: 'absolute', top: '20px', right: '20px', background: '#fff', color: '#000',
+                    border: 'none', borderRadius: '50%', width: '40px', height: '40px', fontSize: '20px',
+                    cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold'
+                }}
+            >
+                ✕
+            </button>
             
-            <h1 style={{ color: '#D4AF37', fontFamily: 'serif', fontSize: '36px', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '40px', textAlign: 'center' }}>
+            <h1 style={{ color: '#D4AF37', fontFamily: 'serif', fontSize: '36px', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '40px', textAlign: 'center', marginTop: '20px' }}>
                 Admin Live Viewer
             </h1>
             

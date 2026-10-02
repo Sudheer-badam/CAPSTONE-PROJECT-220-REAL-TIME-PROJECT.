@@ -10,6 +10,7 @@ import ModelMetrics from './pages/ModelMetrics'
 import AdminLiveMap from './pages/AdminLiveMap'
 import RiskZoneAlert from './components/RiskZoneAlert'
 import BroadcastLive from './pages/BroadcastLive'
+import AdminBroadcastViewer from './pages/AdminBroadcastViewer'
 import './index.css'
 
 const THEMES = [
@@ -72,6 +73,7 @@ function App() {
   const [locationError, setLocationError] = useState(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
+  const [isAdminViewModalOpen, setIsAdminViewModalOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -294,17 +296,31 @@ function App() {
                   {user.email}
                 </p>
 
-                <button 
-                  onClick={() => { setIsBroadcastModalOpen(true); setIsProfileOpen(false); }}
-                  style={{
-                    width: '100%', padding: '12px', background: '#D4AF37', color: '#000',
-                    border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                    marginBottom: '10px', fontSize: '16px'
-                  }}
-                >
-                  <span style={{ fontSize: '20px' }}>📹</span> Broadcast Live
-                </button>
+                {ADMIN_EMAILS.includes(user.email) ? (
+                  <button 
+                    onClick={() => { setIsAdminViewModalOpen(true); setIsProfileOpen(false); }}
+                    style={{
+                      width: '100%', padding: '12px', background: '#D4AF37', color: '#000',
+                      border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                      marginBottom: '10px', fontSize: '16px'
+                    }}
+                  >
+                    <span style={{ fontSize: '20px' }}>🖥️</span> Admin Live View
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => { setIsBroadcastModalOpen(true); setIsProfileOpen(false); }}
+                    style={{
+                      width: '100%', padding: '12px', background: '#D4AF37', color: '#000',
+                      border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                      marginBottom: '10px', fontSize: '16px'
+                    }}
+                  >
+                    <span style={{ fontSize: '20px' }}>📹</span> Broadcast Live
+                  </button>
+                )}
 
                 <button 
                   onClick={handleSignOut}
@@ -325,6 +341,10 @@ function App() {
 
       {isBroadcastModalOpen && (
         <BroadcastLive onClose={() => setIsBroadcastModalOpen(false)} />
+      )}
+
+      {isAdminViewModalOpen && (
+        <AdminBroadcastViewer onClose={() => setIsAdminViewModalOpen(false)} />
       )}
 
       <main>
