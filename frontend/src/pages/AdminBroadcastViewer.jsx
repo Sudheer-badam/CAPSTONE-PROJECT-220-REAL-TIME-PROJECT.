@@ -8,6 +8,7 @@ const AdminBroadcastViewer = ({ onClose }) => {
     const [activeCalls, setActiveCalls] = useState(new Set());
     const [selectedUser, setSelectedUser] = useState("");
     const [isWatching, setIsWatching] = useState(false);
+    const [now, setNow] = useState(new Date());
     
     const [camMuted, setCamMuted] = useState(false);
     const [screenMuted, setScreenMuted] = useState(false);
@@ -47,6 +48,12 @@ const AdminBroadcastViewer = ({ onClose }) => {
             unsubUsers();
             unsubCalls();
         };
+    }, []);
+
+    // Force re-render every 5 seconds to evaluate stale heartbeats
+    useEffect(() => {
+        const interval = setInterval(() => setNow(new Date()), 5000);
+        return () => clearInterval(interval);
     }, []);
 
     // Simulate dB meter
@@ -112,7 +119,9 @@ const AdminBroadcastViewer = ({ onClose }) => {
                 >
                     <option value="" disabled>Select a user to watch ({users.length} total)</option>
                     {users.map(u => {
-                        const isLive = activeCalls.has(u.uid);
+                        // Check if they are broadcasting AND their heartbeat ping was within the last 15 seconds
+                        const isRecentlyActive = u.last_updated && (now - new Date(u.last_updated) < 15000);
+                        const isLive = activeCalls.has(u.uid) && isRecentlyActive;
                         const statusDot = isLive ? '🟢' : '🔴';
                         const emailDisplay = u.email ? `(${u.email})` : '(No Email Provided)';
                         return (
