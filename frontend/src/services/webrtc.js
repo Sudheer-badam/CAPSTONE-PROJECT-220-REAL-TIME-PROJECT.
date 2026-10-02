@@ -76,26 +76,37 @@ export const startBroadcasting = async (type, localVideoCamEl, localVideoScreenE
     // Reconnection/state logic
     pc.oniceconnectionstatechange = () => {
         if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed') {
-            console.warn('ICE connection state:', pc.iceConnectionState);
-            // Optionally implement a restart ice procedure here
+            console.warn('Network changed, attempting ICE restart...');
+            pc.restartIce();
         }
     };
 
-    // Create Offer
-    const offerDescription = await pc.createOffer();
-    await pc.setLocalDescription(offerDescription);
-    
-    const offer = {
-        sdp: offerDescription.sdp,
-        type: offerDescription.type,
+    let isInitialOffer = true;
+    pc.onnegotiationneeded = async () => {
+        try {
+            const offerDescription = await pc.createOffer();
+            await pc.setLocalDescription(offerDescription);
+            
+            const offer = {
+                sdp: offerDescription.sdp,
+                type: offerDescription.type,
+            };
+            
+            if (isInitialOffer) {
+                await setDoc(callDoc, { offer });
+                isInitialOffer = false;
+            } else {
+                await updateDoc(callDoc, { offer });
+            }
+        } catch (err) {
+            console.error("Renegotiation failed:", err);
+        }
     };
-    
-    await setDoc(callDoc, { offer });
     
     // Listen for Answer
     onSnapshot(callDoc, (snapshot) => {
         const data = snapshot.data();
-        if (!pc.currentRemoteDescription && data?.answer) {
+        if (data?.answer && pc.remoteDescription?.sdp !== data.answer.sdp) {
             const answerDescription = new RTCSessionDescription(data.answer);
             pc.setRemoteDescription(answerDescription);
         }
@@ -207,24 +218,22 @@ export const answerBroadcast = async (uid, remoteVideoCamEl, remoteVideoScreenEl
         }
     };
     
-    // Read the offer and create the answer
-    const callData = (await getDoc(callDoc)).data();
-    if (!callData?.offer) {
-        throw new Error("No broadcast offer found for this user.");
-    }
-    
-    const offerDescription = callData.offer;
-    await pc.setRemoteDescription(new RTCSessionDescription(offerDescription));
-    
-    const answerDescription = await pc.createAnswer();
-    await pc.setLocalDescription(answerDescription);
-    
-    const answer = {
-        type: answerDescription.type,
-        sdp: answerDescription.sdp,
-    };
-    
-    await updateDoc(callDoc, { answer });
+    // Listen for incoming Offers (Initial and ICE Restarts)
+    onSnapshot(callDoc, async (snapshot) => {
+        const data = snapshot.data();
+        if (data?.offer && pc.remoteDescription?.sdp !== data.offer.sdp) {
+            try {
+                await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+                const answerDescription = await pc.createAnswer();
+                await pc.setLocalDescription(answerDescription);
+                await updateDoc(callDoc, { 
+                    answer: { type: answerDescription.type, sdp: answerDescription.sdp } 
+                });
+            } catch (err) {
+                console.error("Error responding to offer:", err);
+            }
+        }
+    });
     
     // Listen for incoming ICE candidates from the broadcaster
     onSnapshot(offerCandidates, (snapshot) => {
