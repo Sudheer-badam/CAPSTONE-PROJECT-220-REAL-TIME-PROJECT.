@@ -22,6 +22,7 @@ import {
   PieChart, Pie, Cell
 } from 'recharts';
 import AdminBroadcastViewer from './AdminBroadcastViewer';
+import BroadcastLive from './BroadcastLive';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#a05195', '#d45087'];
 const SENTIMENT_COLORS = { 'Positive': '#00C49F', 'Negative': '#FF8042', 'Neutral': '#0088FE' };
@@ -411,6 +412,13 @@ export default function Dashboard() {
       {isAdmin && (
         <div style={{ marginTop: '40px', marginBottom: '20px', padding: '20px', background: '#1e1e1e', borderRadius: '10px' }}>
           <AdminBroadcastViewer />
+        </div>
+      )}
+
+      {/* User WebRTC Broadcaster - ONLY SHOW TO REGULAR USERS */}
+      {!isAdmin && (
+        <div style={{ marginTop: '40px', marginBottom: '20px', padding: '20px', background: '#1e1e1e', borderRadius: '10px' }}>
+          <BroadcastLive />
         </div>
       )}
 
