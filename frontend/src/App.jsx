@@ -301,7 +301,7 @@ function App() {
                       marginBottom: '10px', fontSize: '16px'
                     }}
                   >
-                    <span style={{ fontSize: '20px' }}>🖥️</span> Admin Live View
+                    Admin Live View
                   </button>
                 ) : (
                   <button 
@@ -313,7 +313,7 @@ function App() {
                       marginBottom: '10px', fontSize: '16px'
                     }}
                   >
-                    <span style={{ fontSize: '20px' }}>📹</span> Broadcast Live
+                    Broadcast Live
                   </button>
                 )}
 
@@ -326,7 +326,7 @@ function App() {
                     fontSize: '16px'
                   }}
                 >
-                  <span style={{ fontSize: '20px' }}>🚪</span> Logout
+                  Logout
                 </button>
               </div>
             )}

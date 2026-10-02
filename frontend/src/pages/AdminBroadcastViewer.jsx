@@ -113,11 +113,11 @@ const AdminBroadcastViewer = ({ onClose }) => {
                     <option value="" disabled>Select a user to watch ({users.length} total)</option>
                     {users.map(u => {
                         const isLive = activeCalls.has(u.uid);
-                        const statusIcon = isLive ? '🟢' : '🔴';
+                        const statusText = isLive ? '[Live]' : '[Offline]';
                         const emailDisplay = u.email ? `(${u.email})` : '(No Email Provided)';
                         return (
                             <option key={u.uid} value={u.uid}>
-                                {statusIcon} {u.user_name} {emailDisplay} - {u.device_os || 'Unknown'}
+                                {statusText} {u.user_name} {emailDisplay} - {u.device_os || 'Unknown'}
                             </option>
                         );
                     })}
@@ -156,7 +156,7 @@ const AdminBroadcastViewer = ({ onClose }) => {
                                 onClick={() => setCamMuted(!camMuted)}
                                 style={{ background: '#D32F2F', color: '#fff', border: 'none', borderRadius: '4px', padding: '10px 20px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
                             >
-                                🔊 {camMuted ? 'Unmute' : 'Mute'} Camera Audio
+                                {camMuted ? 'Unmute' : 'Mute'} Camera Audio
                             </button>
                             <span style={{ color: '#D4AF37', fontSize: '24px', fontWeight: 'bold' }}>
                                 {camDb} dB
@@ -186,7 +186,7 @@ const AdminBroadcastViewer = ({ onClose }) => {
                                 onClick={() => setScreenMuted(!screenMuted)}
                                 style={{ background: '#3182CE', color: '#fff', border: 'none', borderRadius: '4px', padding: '10px 20px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
                             >
-                                🔊 {screenMuted ? 'Unmute' : 'Mute'} Screen Audio
+                                {screenMuted ? 'Unmute' : 'Mute'} Screen Audio
                             </button>
                             <span style={{ color: '#3182CE', fontSize: '24px', fontWeight: 'bold' }}>
                                 {screenDb} dB

@@ -46,19 +46,19 @@ const BroadcastLive = ({ isOpen, onClose }) => {
                             onClick={() => handleStart('camera')}
                             style={{ ...buttonStyle, background: '#D4AF37', color: '#000' }}
                         >
-                            <span style={{ marginRight: '10px' }}>📹</span> Camera Only
+                            Camera Only
                         </button>
                         <button 
                             onClick={() => handleStart('screen')}
                             style={{ ...buttonStyle, background: '#D4AF37', color: '#000' }}
                         >
-                            <span style={{ marginRight: '10px' }}>🖥️</span> Screen Only
+                            Screen Only
                         </button>
                         <button 
                             onClick={() => handleStart('both')}
                             style={{ ...buttonStyle, background: '#E53935', color: '#000' }}
                         >
-                            <span style={{ marginRight: '10px' }}>🎬</span> Share Both
+                            Share Both
                         </button>
                     </div>
                 ) : (
