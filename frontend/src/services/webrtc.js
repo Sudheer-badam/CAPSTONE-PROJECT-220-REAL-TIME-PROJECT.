@@ -124,12 +124,6 @@ export const answerBroadcast = async (uid, remoteVideoCamEl, remoteVideoScreenEl
 
     // Track incoming streams by ID
     const streamMap = {};
-    
-    const camStream = new MediaStream();
-    const scrStream = new MediaStream();
-    
-    if (remoteVideoCamEl) remoteVideoCamEl.srcObject = camStream;
-    if (remoteVideoScreenEl) remoteVideoScreenEl.srcObject = scrStream;
 
     pc.ontrack = (event) => {
         console.log("Track received:", event.track.kind);
@@ -141,18 +135,17 @@ export const answerBroadcast = async (uid, remoteVideoCamEl, remoteVideoScreenEl
         // Map the first unique stream ID to the Camera stream, and the second to Screen stream
         if (!streamMap[streamId]) {
             if (Object.keys(streamMap).length === 0) {
-                streamMap[streamId] = camStream;
+                streamMap[streamId] = 'cam';
+                if (remoteVideoCamEl) remoteVideoCamEl.srcObject = stream;
             } else {
-                streamMap[streamId] = scrStream;
+                streamMap[streamId] = 'scr';
+                if (remoteVideoScreenEl) remoteVideoScreenEl.srcObject = stream;
             }
         }
-        
-        const targetStream = streamMap[streamId];
-        targetStream.addTrack(event.track);
 
         if (event.track.kind === 'audio') {
-            const targetCanvas = (targetStream === camStream) ? camCanvasEl : scrCanvasEl;
-            const color = (targetStream === camStream) ? 'rgba(212, 175, 55, 0.8)' : 'rgba(49, 130, 206, 0.8)';
+            const targetCanvas = (streamMap[streamId] === 'cam') ? camCanvasEl : scrCanvasEl;
+            const color = (streamMap[streamId] === 'cam') ? 'rgba(212, 175, 55, 0.8)' : 'rgba(49, 130, 206, 0.8)';
             
             if (targetCanvas) {
                 try {
