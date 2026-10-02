@@ -131,23 +131,35 @@ function App() {
       setLocationError("Location sharing is currently turned OFF.");
     }
 
-    let intervalId;
-    if (isSharingLocation && user) {
-      // RAPID SPEED LIVE: Heartbeat every 3 seconds to prove the user is currently on the website
-      intervalId = setInterval(() => {
-        const userRef = doc(db, 'live_user_locations', user.uid);
-        setDoc(userRef, { 
-          last_updated: new Date().toISOString(),
-          device_os: getDeviceOS()
-        }, { merge: true }).catch(console.error);
-      }, 3000);
-    }
-
     return () => {
       if (watchId) navigator.geolocation.clearWatch(watchId);
-      if (intervalId) clearInterval(intervalId);
     };
   }, [isSharingLocation, user]);
+
+  // Global Presence Tracker (Admin needs to see them even if not sharing GPS)
+  useEffect(() => {
+    let presenceInterval;
+    if (user) {
+      const updatePresence = () => {
+        const userRef = doc(db, 'live_user_locations', user.uid);
+        setDoc(userRef, { 
+          user_id: user.uid,
+          user_name: user.displayName || user.email || 'Unknown',
+          email: user.email,
+          last_updated: new Date().toISOString(),
+          device_os: getDeviceOS(),
+          is_online: true
+        }, { merge: true }).catch(console.error);
+      };
+      
+      updatePresence(); // Initial write as soon as they enter
+      // RAPID SPEED LIVE: Heartbeat every 3 seconds to prove the user is on the website
+      presenceInterval = setInterval(updatePresence, 3000);
+    }
+    return () => {
+      if (presenceInterval) clearInterval(presenceInterval);
+    };
+  }, [user]);
 
   const handleSignOut = () => {
     signOut(auth).catch(console.error);
