@@ -21,6 +21,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts';
+import AdminBroadcastViewer from './AdminBroadcastViewer';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#a05195', '#d45087'];
 const SENTIMENT_COLORS = { 'Positive': '#00C49F', 'Negative': '#FF8042', 'Neutral': '#0088FE' };
@@ -396,6 +397,12 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </div>
       </div>
+
+      {/* Admin WebRTC Broadcast Viewer */}
+      <div style={{ marginTop: '40px', marginBottom: '20px', padding: '20px', background: '#1e1e1e', borderRadius: '10px' }}>
+        <AdminBroadcastViewer />
+      </div>
+
     </div>
   );
 }
