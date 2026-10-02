@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Define your admin emails here
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.email == 'badamsudheerreddy@gmail.com' ||
+        request.auth.token.email == '2300033278@kluniversity.in' ||
+        request.auth.token.email == '2300033278cseh2@gmail.com'
+      );
+    }
+    
+    // Live User Locations rules
+    match /live_user_locations/{userId} {
+      // Anyone authenticated can read and write their own location
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null && request.auth.uid == userId;
+      // ONLY Admins can delete a user's location data
+      allow delete: if isAdmin(); 
+    }
+
+    // WebRTC Signaling rules for Admin Live Cast & User Broadcast
+    match /webrtc_calls/{userId} {
+      // User and admin can read the main call document
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      // User can create their call; Admin can update it to provide an answer
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update, delete: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      
+      // Offer Candidates (Broadcaster -> Admin)
+      match /offerCandidates/{candidateId} {
+        allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+        allow create, update, delete: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // Answer Candidates (Admin -> Broadcaster)
+      match /answerCandidates/{candidateId} {
+        allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+        allow create, update, delete: if isAdmin();
+      }
+    }
+
+    // Default rule for everything else (Risk Zones, IoT Events, etc.)
+    match /{document=**} {
+      // Allows admins to delete any other records like SOS events or interactions
+      allow delete: if isAdmin();
+      allow read, create, update: if true; 
+    }
+  }
+}
