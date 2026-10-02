@@ -23,7 +23,11 @@ const BroadcastLive = ({ onClose }) => {
 
     return (
         <div style={overlayStyle}>
-            <div style={modalStyle}>
+            <div style={{
+                ...modalStyle,
+                maxWidth: (isBroadcasting && broadcastType === 'both') ? '800px' : '400px',
+                transition: 'max-width 0.3s ease'
+            }}>
                 <button onClick={onClose} style={closeBtnStyle}>✕</button>
                 
                 <h2 style={{ fontSize: '32px', marginBottom: '10px', color: '#D4AF37', textAlign: 'center', fontFamily: 'serif', textTransform: 'uppercase' }}>
@@ -61,8 +65,8 @@ const BroadcastLive = ({ onClose }) => {
                     <h3 style={{ color: '#4CAF50', textAlign: 'center' }}>Broadcasting ({broadcastType})...</h3>
                 )}
 
-                <div style={{ display: isBroadcasting ? 'flex' : 'none', flexDirection: 'column', gap: '20px', width: '100%', marginTop: '20px' }}>
-                    <div style={{ display: (broadcastType === 'camera' || broadcastType === 'both') ? 'block' : 'none', width: '100%' }}>
+                <div style={{ display: isBroadcasting ? 'flex' : 'none', flexDirection: 'row', flexWrap: 'wrap', gap: '20px', width: '100%', marginTop: '20px', justifyContent: 'center' }}>
+                    <div style={{ display: (broadcastType === 'camera' || broadcastType === 'both') ? 'block' : 'none', flex: '1 1 300px', minWidth: '0' }}>
                         <video 
                             ref={camVideoRef} 
                             autoPlay 
@@ -72,7 +76,7 @@ const BroadcastLive = ({ onClose }) => {
                         />
                     </div>
                     
-                    <div style={{ display: (broadcastType === 'screen' || broadcastType === 'both') ? 'block' : 'none', width: '100%' }}>
+                    <div style={{ display: (broadcastType === 'screen' || broadcastType === 'both') ? 'block' : 'none', flex: '1 1 300px', minWidth: '0' }}>
                         <video 
                             ref={screenVideoRef} 
                             autoPlay 
@@ -128,7 +132,8 @@ const closeBtnStyle = {
 };
 
 const buttonStyle = {
-    width: '80%',
+    width: '100%',
+    maxWidth: '300px',
     padding: '15px 20px',
     border: 'none',
     borderRadius: '8px',
