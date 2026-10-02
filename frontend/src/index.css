@@ -641,3 +641,31 @@ th:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
 }
+
+/* Profile Dropdown Menu Styling */
+.profile-dropdown-menu {
+  position: absolute;
+  top: 55px;
+  right: 0;
+  background: #1A1A1A;
+  border: 1px solid #D4AF37;
+  border-radius: 12px;
+  padding: 20px;
+  width: 280px;
+  z-index: 1000;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+  text-align: left;
+}
+
+@media (max-width: 768px) {
+  .profile-dropdown-menu {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 320px;
+    z-index: 99999;
+    box-shadow: 0 0 0 100vw rgba(0,0,0,0.5), 0 8px 16px rgba(0,0,0,0.5);
+  }
+}
