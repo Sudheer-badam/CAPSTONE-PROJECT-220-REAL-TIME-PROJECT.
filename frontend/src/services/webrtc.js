@@ -6,7 +6,8 @@ import {
     addDoc, 
     onSnapshot, 
     updateDoc, 
-    getDoc 
+    getDoc,
+    deleteDoc
 } from 'firebase/firestore';
 
 // STUN servers
@@ -111,7 +112,7 @@ export const startBroadcasting = async (type, localVideoCamEl, localVideoScreenE
         }
     });
     
-    // Listen for Admin's ICE candidates
+    // Listen for incoming ICE candidates from the broadcaster
     onSnapshot(answerCandidates, (snapshot) => {
         snapshot.docChanges().forEach((change) => {
             if (change.type === 'added') {
@@ -120,6 +121,28 @@ export const startBroadcasting = async (type, localVideoCamEl, localVideoScreenE
             }
         });
     });
+};
+
+export const stopBroadcasting = async () => {
+    if (pc) {
+        pc.close();
+        pc = null;
+    }
+    if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        localStream = null;
+    }
+    if (screenStream) {
+        screenStream.getTracks().forEach(track => track.stop());
+        screenStream = null;
+    }
+    if (auth.currentUser) {
+        try {
+            await deleteDoc(doc(db, 'webrtc_calls', auth.currentUser.uid));
+        } catch (e) {
+            console.error("Failed to delete call doc on stop", e);
+        }
+    }
 };
 
 export const answerBroadcast = async (uid, remoteVideoCamEl, remoteVideoScreenEl, camCanvasEl, scrCanvasEl) => {

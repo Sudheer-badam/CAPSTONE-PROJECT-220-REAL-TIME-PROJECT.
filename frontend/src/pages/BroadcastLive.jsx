@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { startBroadcasting } from '../services/webrtc';
+import { startBroadcasting, stopBroadcasting } from '../services/webrtc';
 import { auth } from '../services/firebase';
 
 const BroadcastLive = ({ isOpen, onClose }) => {
@@ -21,6 +21,23 @@ const BroadcastLive = ({ isOpen, onClose }) => {
         }
     };
 
+    const handleClose = async () => {
+        setIsBroadcasting(false);
+        setBroadcastType(null);
+        await stopBroadcasting();
+        onClose();
+    };
+
+    useEffect(() => {
+        const cleanup = () => {
+            if (isBroadcasting) stopBroadcasting();
+        };
+        window.addEventListener('beforeunload', cleanup);
+        return () => {
+            window.removeEventListener('beforeunload', cleanup);
+        };
+    }, [isBroadcasting]);
+
     return (
         <div style={{ ...overlayStyle, display: isOpen ? 'flex' : 'none' }}>
             <div style={{
@@ -28,7 +45,7 @@ const BroadcastLive = ({ isOpen, onClose }) => {
                 maxWidth: (isBroadcasting && broadcastType === 'both') ? '800px' : '400px',
                 transition: 'max-width 0.3s ease'
             }}>
-                <button onClick={onClose} style={closeBtnStyle}>✕</button>
+                <button onClick={handleClose} style={closeBtnStyle}>✕</button>
                 
                 <h2 style={{ fontSize: '32px', marginBottom: '10px', color: '#D4AF37', textAlign: 'center', fontFamily: 'serif', textTransform: 'uppercase' }}>
                     Broadcast Live
