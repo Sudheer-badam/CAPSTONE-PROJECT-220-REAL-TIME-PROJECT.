@@ -118,7 +118,8 @@ const AdminBroadcastViewer = ({ onClose }) => {
                     style={{ flex: '1 1 250px', padding: '12px', borderRadius: '4px', border: 'none', fontSize: '16px', outline: 'none', maxWidth: '100%' }}
                 >
                     {(() => {
-                        const liveUsers = users.filter(u => activeCalls.has(u.uid) && u.last_updated && (now - new Date(u.last_updated) < 15000));
+                        // Rely on activeCalls since background tabs can throttle the 15s heartbeat
+                        const liveUsers = users.filter(u => activeCalls.has(u.uid));
                         return (
                             <>
                                 <option value="" disabled>Select a user to watch ({liveUsers.length} live)</option>
