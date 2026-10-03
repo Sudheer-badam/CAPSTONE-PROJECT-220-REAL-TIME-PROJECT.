@@ -118,10 +118,16 @@ const AdminBroadcastViewer = ({ onClose }) => {
                     style={{ flex: '1 1 250px', padding: '12px', borderRadius: '4px', border: 'none', fontSize: '16px', outline: 'none', maxWidth: '100%' }}
                 >
                     {(() => {
-                        // Background tabs will stay active indefinitely without timing out.
-                        // We rely entirely on the user closing the modal or the browser tab 
-                        // which triggers `stopBroadcasting()` to delete the document.
-                        const liveUsers = users.filter(u => activeCalls.has(u.uid));
+                        // Background tabs throttle to 1 minute, so they will stay active.
+                        // We use a 5-minute (300,000 ms) fallback timeout to automatically clear 
+                        // out "ghosts" (e.g. from previous sessions or if a browser crashes).
+                        const liveUsers = users.filter(u => {
+                            if (!activeCalls.has(u.uid)) return false;
+                            if (!u.last_updated) return false;
+                            
+                            const timeDiff = now.getTime() - new Date(u.last_updated).getTime();
+                            return timeDiff < 300000; // 5 minutes
+                        });
                         
                         return (
                             <>
