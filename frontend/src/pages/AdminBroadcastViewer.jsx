@@ -117,19 +117,22 @@ const AdminBroadcastViewer = ({ onClose }) => {
                     onChange={(e) => setSelectedUser(e.target.value)}
                     style={{ flex: '1 1 250px', padding: '12px', borderRadius: '4px', border: 'none', fontSize: '16px', outline: 'none', maxWidth: '100%' }}
                 >
-                    <option value="" disabled>Select a user to watch ({users.length} total)</option>
-                    {users.map(u => {
-                        // Check if they are broadcasting AND their heartbeat ping was within the last 15 seconds
-                        const isRecentlyActive = u.last_updated && (now - new Date(u.last_updated) < 15000);
-                        const isLive = activeCalls.has(u.uid) && isRecentlyActive;
-                        const statusDot = isLive ? '🟢' : '🔴';
-                        const emailDisplay = u.email ? `(${u.email})` : '(No Email Provided)';
+                    {(() => {
+                        const liveUsers = users.filter(u => activeCalls.has(u.uid) && u.last_updated && (now - new Date(u.last_updated) < 15000));
                         return (
-                            <option key={u.uid} value={u.uid}>
-                                {statusDot} {u.user_name} {emailDisplay} - {u.device_os || 'Unknown'}
-                            </option>
+                            <>
+                                <option value="" disabled>Select a user to watch ({liveUsers.length} live)</option>
+                                {liveUsers.map(u => {
+                                    const emailDisplay = u.email ? `(${u.email})` : '(No Email Provided)';
+                                    return (
+                                        <option key={u.uid} value={u.uid}>
+                                            🟢 {u.user_name} {emailDisplay} - {u.device_os || 'Unknown'}
+                                        </option>
+                                    );
+                                })}
+                            </>
                         );
-                    })}
+                    })()}
                 </select>
 
                 <button 
