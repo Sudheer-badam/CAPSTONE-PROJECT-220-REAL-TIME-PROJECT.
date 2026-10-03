@@ -43,8 +43,11 @@ const VisitorCounter = () => {
     return () => clearInterval(interval);
   }, [usersMap]);
 
+  // The main counter should show TOTAL unique visitors (old + new)
+  const totalVisitorsCount = usersMap.size;
+
   // Format the number to always have 7 digits (e.g., 0000021)
-  const formattedCount = activeCount.toString().padStart(7, '0');
+  const formattedCount = totalVisitorsCount.toString().padStart(7, '0');
   const digits = formattedCount.split('');
 
   // Determine active and inactive users for the list
