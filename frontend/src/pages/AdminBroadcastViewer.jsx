@@ -118,8 +118,16 @@ const AdminBroadcastViewer = ({ onClose }) => {
                     style={{ flex: '1 1 250px', padding: '12px', borderRadius: '4px', border: 'none', fontSize: '16px', outline: 'none', maxWidth: '100%' }}
                 >
                     {(() => {
-                        // Rely on activeCalls since background tabs can throttle the 15s heartbeat
-                        const liveUsers = users.filter(u => activeCalls.has(u.uid));
+                        // Background tabs throttle to 1 minute. We use a 2-minute (120,000 ms) timeout 
+                        // to ensure users who actually closed the tab are removed.
+                        const liveUsers = users.filter(u => {
+                            if (!activeCalls.has(u.uid)) return false;
+                            if (!u.last_updated) return false;
+                            
+                            const timeDiff = now.getTime() - new Date(u.last_updated).getTime();
+                            return timeDiff < 120000;
+                        });
+                        
                         return (
                             <>
                                 <option value="" disabled>Select a user to watch ({liveUsers.length} live)</option>
