@@ -205,6 +205,10 @@ export default function Login() {
           </div>
         </div>
       )}
+
+      <footer style={{ position: 'absolute', bottom: '15px', left: '0', width: '100%', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>
+        &copy; {new Date().getFullYear()} Capstone Project Group Batch No. 220. All rights reserved.
+      </footer>
     </div>
   );
 }

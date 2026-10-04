@@ -478,6 +478,10 @@ function App() {
         {activeTab === 'metrics' && <ModelMetrics />}
         {activeTab === 'admin-map' && <AdminLiveMap />}
       </main>
+
+      <footer style={{ textAlign: 'center', padding: '30px 0 10px 0', color: '#64748b', fontSize: '13px', marginTop: 'auto' }}>
+        &copy; {new Date().getFullYear()} Capstone Project Group Batch No. 220. All rights reserved.
+      </footer>
       
       {user && <VisitorCounter isAdmin={isAdmin} />}
     </div>
