@@ -669,3 +669,13 @@ th:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
     box-shadow: 0 0 0 100vw rgba(0,0,0,0.5), 0 8px 16px rgba(0,0,0,0.5);
   }
 }
+
+/* Security: Block printing/saving as PDF */
+@media print {
+  html, body {
+    display: none !important;
+  }
+  * {
+    display: none !important;
+  }
+}
