@@ -288,62 +288,10 @@ th:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
 }
 
 @media (max-width: 768px) {
-  /* Premium Fixed Bottom Navigation Bar for Mobile */
-  nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(15px);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 15px;
-    margin: 0;
-    box-shadow: 0 -5px 25px rgba(0,0,0,0.1);
-    z-index: 9000;
-    border-top: 1px solid rgba(0,0,0,0.05);
-    border-radius: 24px 24px 0 0;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+  .app-container {
+    padding: 10px;
   }
   
-  nav::-webkit-scrollbar {
-    display: none;
-  }
-
-  nav button {
-    flex: 0 0 auto;
-    padding: 10px 14px;
-    font-size: 13px;
-    border-radius: 12px;
-    margin: 0 4px;
-    background: transparent;
-    color: #64748b;
-    border: none;
-    white-space: nowrap;
-  }
-
-  /* Reset individual tab colors for mobile to look cleaner, relying on active state */
-  nav button.nav-dashboard, nav button.nav-map, nav button.nav-iot, nav button.nav-metrics, nav button.nav-admin-map {
-    background: transparent;
-    border: 1px solid transparent;
-  }
-
-  nav button.active {
-    background: var(--primary) !important;
-    color: white !important;
-    box-shadow: 0 4px 12px rgba(47, 93, 125, 0.4) !important;
-    transform: translateY(-2px);
-  }
-
-  .app-container {
-    padding: 10px 10px 90px 10px; /* Add bottom padding to avoid hiding content under nav */
-  }
-
   header {
     padding: 20px 15px;
     border-radius: 16px;
@@ -364,6 +312,29 @@ th:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
 
   header h1 {
     font-size: 20px;
+  }
+
+  /* Native app-style horizontally scrolling nav on mobile */
+  nav {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    margin-top: 20px;
+    /* Hide scrollbar for clean look */
+    scrollbar-width: none; 
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+  }
+  
+  nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  nav button {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
   }
 
   .theme-switcher {
@@ -412,11 +383,8 @@ th:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
     padding: 15px;
   }
 
-  /* Full screen map feel on mobile */
   .leaflet-container {
-    height: calc(100vh - 220px);
-    min-height: 400px;
-    border-radius: 12px;
+    height: 350px;
   }
   
   /* Make table look better on mobile */
