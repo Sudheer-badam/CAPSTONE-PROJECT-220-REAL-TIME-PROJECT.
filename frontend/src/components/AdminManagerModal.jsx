@@ -53,10 +53,17 @@ export default function AdminManagerModal({ isOpen, onClose }) {
         setVerifiedUser({
           name: userDetails.user_name,
           email: userDetails.email,
-          photoUrl: userDetails.photo_url || null
+          photoUrl: userDetails.photo_url || null,
+          isNew: false
         });
       } else {
-        setVerifyError("User not found. They must log in to the app first.");
+        // Allow adding even if they never visited
+        setVerifiedUser({
+          name: "Unknown (Never Logged In)",
+          email: newAdminEmail.trim().toLowerCase(),
+          photoUrl: null,
+          isNew: true
+        });
       }
     } catch (err) {
       console.error("Verification error:", err);
