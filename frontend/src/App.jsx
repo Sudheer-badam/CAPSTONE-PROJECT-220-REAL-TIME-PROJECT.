@@ -83,6 +83,54 @@ function App() {
   const previousIsTempAdmin = useRef(null);
   const profileDropdownRef = useRef(null);
 
+  // Security Measures: Prevent screenshots, copying, and right-clicks for NON-ADMINS
+  useEffect(() => {
+    if (user && !isAdmin) {
+      const handleKeyDown = (e) => {
+        // Prevent PrintScreen, Ctrl+P/S/C, and Mac Cmd+Shift+3/4/5
+        if (
+          e.key === 'PrintScreen' || 
+          (e.ctrlKey && ['p', 's', 'c'].includes(e.key.toLowerCase())) ||
+          (e.metaKey && ['p', 's', 'c'].includes(e.key.toLowerCase())) ||
+          (e.metaKey && e.shiftKey && ['3', '4', '5'].includes(e.key))
+        ) {
+          e.preventDefault();
+          alert("Security Policy: Screenshots and copying are disabled for non-admins.");
+        }
+      };
+
+      const handleContextMenu = (e) => {
+        e.preventDefault();
+      };
+
+      const handleCopy = (e) => {
+        e.preventDefault();
+      };
+
+      document.addEventListener('keydown', handleKeyDown);
+      document.addEventListener('contextmenu', handleContextMenu);
+      document.addEventListener('copy', handleCopy);
+
+      document.body.style.userSelect = 'none';
+      document.body.style.webkitUserSelect = 'none';
+      // Prevent touch callouts on iOS (long press to save image)
+      document.body.style.webkitTouchCallout = 'none';
+
+      return () => {
+        document.removeEventListener('keydown', handleKeyDown);
+        document.removeEventListener('contextmenu', handleContextMenu);
+        document.removeEventListener('copy', handleCopy);
+        document.body.style.userSelect = 'auto';
+        document.body.style.webkitUserSelect = 'auto';
+        document.body.style.webkitTouchCallout = 'default';
+      };
+    } else {
+      document.body.style.userSelect = 'auto';
+      document.body.style.webkitUserSelect = 'auto';
+      document.body.style.webkitTouchCallout = 'default';
+    }
+  }, [user, isAdmin]);
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
