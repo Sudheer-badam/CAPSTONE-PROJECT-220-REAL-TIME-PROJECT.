@@ -81,6 +81,17 @@ function App() {
   const [loadedInitialAdmins, setLoadedInitialAdmins] = useState(false);
   const [adminNotification, setAdminNotification] = useState(null);
   const previousIsTempAdmin = useRef(null);
+  const profileDropdownRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
+        setIsProfileOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -364,7 +375,7 @@ function App() {
             </button>
           )}
 
-          <div style={{ marginLeft: 'auto', position: 'relative', flex: '0 0 auto' }}>
+          <div ref={profileDropdownRef} style={{ marginLeft: 'auto', position: 'relative', flex: '0 0 auto' }}>
             <button 
               onClick={() => setIsProfileOpen(!isProfileOpen)} 
               style={{
