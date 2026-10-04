@@ -57,9 +57,12 @@ export default function AdminManagerModal({ isOpen, onClose }) {
           isNew: false
         });
       } else {
-        // Allow adding even if they never visited
+        // Fallback: Use the email prefix as their "name" until they log in
+        const emailPrefix = newAdminEmail.split('@')[0];
+        const formattedName = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1).toLowerCase();
+        
         setVerifiedUser({
-          name: "Unknown (Never Logged In)",
+          name: `${formattedName} (Not Registered Yet)`,
           email: newAdminEmail.trim().toLowerCase(),
           photoUrl: null,
           isNew: true
