@@ -479,7 +479,7 @@ function App() {
         {activeTab === 'admin-map' && <AdminLiveMap />}
       </main>
       
-      {user && <VisitorCounter />}
+      {user && <VisitorCounter isAdmin={isAdmin} />}
     </div>
   )
 }

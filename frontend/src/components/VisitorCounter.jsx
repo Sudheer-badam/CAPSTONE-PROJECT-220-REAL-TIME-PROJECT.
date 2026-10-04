@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../services/firebase';
 
-const VisitorCounter = () => {
+const VisitorCounter = ({ isAdmin }) => {
   const [usersMap, setUsersMap] = useState(new Map());
   const [activeCount, setActiveCount] = useState(0);
   const [showList, setShowList] = useState(false);
@@ -67,7 +67,7 @@ const VisitorCounter = () => {
   return (
     <>
       <div 
-        onClick={() => setShowList(!showList)}
+        onClick={() => isAdmin && setShowList(!showList)}
         style={{
           position: 'fixed',
           bottom: '15px',
@@ -81,11 +81,11 @@ const VisitorCounter = () => {
           alignItems: 'center',
           zIndex: 9000,
           border: '1px solid #111',
-          cursor: 'pointer',
+          cursor: isAdmin ? 'pointer' : 'default',
           transition: 'transform 0.2s'
         }}
-        onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-        onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        onMouseOver={(e) => isAdmin && (e.currentTarget.style.transform = 'scale(1.05)')}
+        onMouseOut={(e) => isAdmin && (e.currentTarget.style.transform = 'scale(1)')}
       >
         <h3 style={{
           color: '#00FF00',
@@ -126,7 +126,7 @@ const VisitorCounter = () => {
         </div>
       </div>
 
-      {showList && (
+      {isAdmin && showList && (
         <div style={{
           position: 'fixed',
           bottom: '80px',
