@@ -2,13 +2,24 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Define your admin emails here
-    function isAdmin() {
+    function isOriginalAdmin() {
       return request.auth != null && (
         request.auth.token.email == 'badamsudheerreddy@gmail.com' ||
         request.auth.token.email == '2300033278@kluniversity.in' ||
         request.auth.token.email == '2300033278cseh2@gmail.com'
       );
+    }
+
+    function isAdmin() {
+      // Check if original admin OR if the user's email exists in the temporary_admins collection
+      return isOriginalAdmin() || 
+        (request.auth != null && exists(/databases/$(database)/documents/temporary_admins/$(request.auth.token.email)));
+    }
+    
+    // Temporary Admins Rules
+    match /temporary_admins/{email} {
+      allow read: if request.auth != null;
+      allow write: if isOriginalAdmin();
     }
     
     // Live User Locations rules
