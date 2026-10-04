@@ -78,6 +78,7 @@ export default function Login() {
         user_id: user.uid,
         user_name: user.displayName || user.email || 'Unknown User',
         email: user.email || 'No Email',
+        photo_url: user.photoURL || null,
         provider: providerName,
         ip_address: ip,
         location: locationStr,

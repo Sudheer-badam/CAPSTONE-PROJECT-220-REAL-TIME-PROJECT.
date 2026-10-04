@@ -166,6 +166,7 @@ function App() {
                 user_id: user.uid,
                 user_name: user.displayName || user.email || 'Unknown',
                 email: user.email,
+                photo_url: user.photoURL || null,
                 latitude: lat,
                 longitude: lon,
                 is_sharing: true,
@@ -214,6 +215,7 @@ function App() {
           user_id: user.uid,
           user_name: user.displayName || user.email || 'Unknown',
           email: user.email,
+          photo_url: user.photoURL || null,
           last_updated: new Date().toISOString(),
           device_os: getDeviceOS(),
           is_online: true
