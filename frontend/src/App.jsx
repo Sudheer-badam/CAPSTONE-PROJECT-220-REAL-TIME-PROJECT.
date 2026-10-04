@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { auth, db } from './services/firebase'
-import { doc, setDoc } from 'firebase/firestore'
+import { doc, setDoc, collection, onSnapshot } from 'firebase/firestore'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import MapPage from './pages/MapPage'
@@ -11,6 +11,7 @@ import AdminLiveMap from './pages/AdminLiveMap'
 import RiskZoneAlert from './components/RiskZoneAlert'
 import BroadcastLive from './pages/BroadcastLive'
 import AdminBroadcastViewer from './pages/AdminBroadcastViewer'
+import AdminManagerModal from './components/AdminManagerModal'
 import VisitorCounter from './components/VisitorCounter'
 import './index.css'
 
@@ -75,6 +76,11 @@ function App() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
   const [isAdminViewModalOpen, setIsAdminViewModalOpen] = useState(false);
+  const [isAdminManagerOpen, setIsAdminManagerOpen] = useState(false);
+  const [temporaryAdmins, setTemporaryAdmins] = useState([]);
+  const [loadedInitialAdmins, setLoadedInitialAdmins] = useState(false);
+  const [adminNotification, setAdminNotification] = useState(null);
+  const previousIsTempAdmin = useRef(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -83,6 +89,56 @@ function App() {
     });
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'temporary_admins'), (snapshot) => {
+      const admins = [];
+      snapshot.forEach(doc => admins.push(doc.id));
+      setTemporaryAdmins(admins);
+      setLoadedInitialAdmins(true);
+    });
+    return () => unsub();
+  }, []);
+
+  const isOriginalAdmin = user && ADMIN_EMAILS.includes(user.email);
+  const isTempAdmin = user && temporaryAdmins.includes(user.email?.toLowerCase());
+  const isAdmin = isOriginalAdmin || isTempAdmin;
+
+  useEffect(() => {
+    if (!loadedInitialAdmins || !user) return;
+
+    if (previousIsTempAdmin.current === null) {
+      previousIsTempAdmin.current = isTempAdmin;
+      return;
+    }
+
+    if (previousIsTempAdmin.current === false && isTempAdmin === true) {
+      setAdminNotification('You have been ADDED as a temporary admin. You now have access to Admin features.');
+    } else if (previousIsTempAdmin.current === true && isTempAdmin === false) {
+      setAdminNotification('Your Temporary admin rights have been REMOVED by the original admin.');
+    }
+
+    previousIsTempAdmin.current = isTempAdmin;
+  }, [isTempAdmin, loadedInitialAdmins, user]);
+
+  useEffect(() => {
+    let timeout;
+    if (adminNotification) {
+      timeout = setTimeout(() => {
+        setAdminNotification(null);
+      }, 10 * 60 * 1000); // 10 minutes
+    }
+    return () => clearTimeout(timeout);
+  }, [adminNotification]);
+
+  useEffect(() => {
+    if (activeTab === 'admin-map' && !isAdmin) {
+      setActiveTab('dashboard');
+    }
+    if (isAdminViewModalOpen && !isAdmin) {
+      setIsAdminViewModalOpen(false);
+    }
+  }, [isAdmin, activeTab, isAdminViewModalOpen]);
 
   useEffect(() => {
     let watchId;
@@ -239,6 +295,32 @@ function App() {
 
   return (
     <div className="app-container">
+      {adminNotification && (
+        <div style={{
+          position: 'fixed', top: '20px', right: '20px', zIndex: 100000,
+          background: adminNotification.includes('ADDED') ? '#28a745' : '#dc3545',
+          color: 'white', padding: '20px', borderRadius: '8px',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.5)', maxWidth: '350px',
+          display: 'flex', flexDirection: 'column', gap: '10px', animation: 'fadeIn 0.3s ease-out'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <strong style={{ fontSize: '18px' }}>Notification</strong>
+            <button 
+              onClick={() => setAdminNotification(null)}
+              style={{
+                background: 'transparent', border: 'none', color: 'white', 
+                fontSize: '24px', cursor: 'pointer', lineHeight: '1', padding: '0 5px'
+              }}
+            >
+              &times;
+            </button>
+          </div>
+          <p style={{ margin: 0, fontSize: '15px', lineHeight: '1.4' }}>
+            {adminNotification}
+          </p>
+        </div>
+      )}
+
       <RiskZoneAlert />
       <ThemeSwitcher />
       <header>
@@ -272,7 +354,7 @@ function App() {
             Model Performance
           </button>
 
-          {user && ADMIN_EMAILS.includes(user.email) && (
+          {isAdmin && (
             <button 
               className={`nav-admin-map ${activeTab === 'admin-map' ? 'active' : ''}`} 
               onClick={() => setActiveTab('admin-map')}
@@ -304,18 +386,33 @@ function App() {
                   {user.email}
                 </p>
 
-                {ADMIN_EMAILS.includes(user.email) ? (
-                  <button 
-                    onClick={() => { setIsAdminViewModalOpen(true); setIsProfileOpen(false); }}
-                    style={{
-                      width: '100%', padding: '12px', background: '#D4AF37', color: '#000',
-                      border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                      marginBottom: '10px', fontSize: '16px'
-                    }}
-                  >
-                    Admin Live View
-                  </button>
+                {isAdmin ? (
+                  <>
+                    <button 
+                      onClick={() => { setIsAdminViewModalOpen(true); setIsProfileOpen(false); }}
+                      style={{
+                        width: '100%', padding: '12px', background: '#D4AF37', color: '#000',
+                        border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                        marginBottom: '10px', fontSize: '16px'
+                      }}
+                    >
+                      Admin Live View
+                    </button>
+                    {isOriginalAdmin && (
+                      <button 
+                        onClick={() => { setIsAdminManagerOpen(true); setIsProfileOpen(false); }}
+                        style={{
+                          width: '100%', padding: '12px', background: '#28a745', color: '#fff',
+                          border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                          marginBottom: '10px', fontSize: '16px'
+                        }}
+                      >
+                        Manage Temp Admins
+                      </button>
+                    )}
+                  </>
                 ) : (
                   <button 
                     onClick={() => { setIsBroadcastModalOpen(true); setIsProfileOpen(false); }}
@@ -355,6 +452,11 @@ function App() {
       {isAdminViewModalOpen && (
         <AdminBroadcastViewer onClose={() => setIsAdminViewModalOpen(false)} />
       )}
+      
+      <AdminManagerModal 
+        isOpen={isAdminManagerOpen} 
+        onClose={() => setIsAdminManagerOpen(false)} 
+      />
 
       <main>
         {activeTab === 'dashboard' && <Dashboard />}
