@@ -83,6 +83,10 @@ function App() {
   const previousIsTempAdmin = useRef(null);
   const profileDropdownRef = useRef(null);
 
+  const isOriginalAdmin = user && ADMIN_EMAILS.includes(user.email);
+  const isTempAdmin = user && temporaryAdmins.includes(user.email?.toLowerCase());
+  const isAdmin = isOriginalAdmin || isTempAdmin;
+
   // Security Measures: Prevent screenshots, copying, and right-clicks for NON-ADMINS
   useEffect(() => {
     if (user && !isAdmin) {
@@ -158,10 +162,6 @@ function App() {
     });
     return () => unsub();
   }, []);
-
-  const isOriginalAdmin = user && ADMIN_EMAILS.includes(user.email);
-  const isTempAdmin = user && temporaryAdmins.includes(user.email?.toLowerCase());
-  const isAdmin = isOriginalAdmin || isTempAdmin;
 
   useEffect(() => {
     if (!loadedInitialAdmins || !user) return;
