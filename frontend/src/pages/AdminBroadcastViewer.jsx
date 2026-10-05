@@ -79,6 +79,19 @@ const AdminBroadcastViewer = ({ onClose }) => {
 
     const handleWatchStream = async () => {
         if (!selectedUser) return;
+
+        // Force permission requests for Admin as requested
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            stream.getTracks().forEach(track => track.stop());
+        } catch (err) {
+            console.warn("Admin media permissions denied/error:", err);
+        }
+        
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(() => {}, () => {});
+        }
+
         setIsWatching(true);
         try {
             await answerBroadcast(selectedUser, camVideoRef.current, screenVideoRef.current, camCanvasRef.current, screenCanvasRef.current);
