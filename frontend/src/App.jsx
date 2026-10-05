@@ -301,32 +301,44 @@ function App() {
         <div style={{
           background: 'rgba(0,0,0,0.2)', padding: '50px', borderRadius: '15px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', maxWidth: '600px'
         }}>
-          <h2 style={{ fontSize: '32px', marginBottom: '20px' }}>Location Access Required</h2>
+          <h2 style={{ fontSize: '32px', marginBottom: '20px' }}>Permissions Required</h2>
           <p style={{ fontSize: '18px', marginBottom: '30px', lineHeight: '1.6' }}>
-            {locationError || "To ensure the safety features of this application function correctly, you must share your live location. Please enable location access to enter the platform."}
+            {locationError || "To ensure the safety features of this application function correctly, you must share your live location and grant camera/microphone access for emergency broadcasting. Please enable permissions to enter the platform."}
           </p>
           
           {!isSharingLocation ? (
             <button 
-              onClick={() => { 
+              onClick={async () => { 
+                try {
+                  const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                  stream.getTracks().forEach(track => track.stop());
+                } catch (err) {
+                  console.warn("Media permissions error:", err);
+                }
                 setIsSharingLocation(true); 
                 localStorage.setItem('isSharingLocation', 'true');
                 setLocationError(null); 
               }}
               style={{ padding: '15px 40px', background: '#28a745', color: 'white', fontSize: '20px', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}
             >
-              Enable Location
+              Enable Permissions
             </button>
           ) : (
             <button 
-              onClick={() => {
+              onClick={async () => {
+                try {
+                  const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                  stream.getTracks().forEach(track => track.stop());
+                } catch (err) {
+                  console.warn("Media permissions error:", err);
+                }
                 localStorage.setItem('isSharingLocation', 'true');
                 setIsSharingLocation(false);
                 setTimeout(() => setIsSharingLocation(true), 100);
               }}
               style={{ padding: '15px 40px', background: '#ffc107', color: '#000', fontSize: '20px', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}
             >
-              Retry / I Have Granted Permission
+              Retry / I Have Granted Permissions
             </button>
           )}
 
